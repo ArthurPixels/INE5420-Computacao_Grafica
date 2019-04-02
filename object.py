@@ -1,10 +1,26 @@
-class Object:
-    def __init__(self,name,x0,y0,z0=0):
-        self.name = name
-        self.points = [(x0,y0,z0)]
+# classe que define um objeto basico do universo de representacao
 
-# class Point:
-#     def __init__(self, x, y, z=0):
-#         self.x = x
-#         self.y = y
-#         self.z = z
+class Object:
+
+    # string name_, type_;
+
+    # construtor
+
+    def __init__(self, name, type):
+        self.name_ = name
+        self.type_ = type
+
+    # retorna o nome do objeto
+    def get_name(self):
+        return self.name_
+
+    # retorna o tipo do objeto
+    def get_type(self):
+        return self.type_
+
+    # altera o nome do objeto
+    def set_name(self, name):
+        self.name_ = name
+
+
+# end of class Object

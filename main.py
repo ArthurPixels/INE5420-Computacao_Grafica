@@ -2,8 +2,13 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from object import Object
+from point import Point
+from line import Line
+from polygon import Polygon
+from viewport import Viewport
+from window import Window
 
-# import Viewport
+
 
 class DisplayFile:
     def __init__(self, dr_area):
@@ -49,12 +54,12 @@ class Handler:
             y = float(entry_point_y.get_text())
         except:
             print("Error: Invalid value")
-        
-        obj = Object(entry_obj_name.get_text(),x,y)
+
+        obj = Point(entry_obj_name.get_text(),x,y)
         self.display_file.append(obj)
         print(x)
         print(y)
-        self.store.append([obj.name])
+        self.store.append([obj.get_name()])
         self.display_file.update()
 
 class WindowBuilder:
