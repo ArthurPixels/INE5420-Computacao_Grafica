@@ -13,8 +13,9 @@ display_file_ = []
 
 # Create object dialog signal handler
 class COHandler:
-    def __init__(self,builder):
+    def __init__(self,builder,dialog_add_object):
         self.builder = builder
+        self.dialog_add_object = dialog_add_object
 
     def bt_create_object_clicked_cb(self, button):
         entry_obj_name = self.builder.get_object("entry_obj_name")
@@ -29,8 +30,12 @@ class COHandler:
             print(y)
             store = self.builder.get_object("obj_list_store")
             store.append([obj.name_, obj.type_])
+            self.dialog_add_object.destroy()
         except:
             print("Error: Invalid value\n")
+
+    def bt_cancel_create_object_clicked_cb(self, button):
+        self.dialog_add_object.destroy()
 
 class Handler:
     def __init__(self,builder):
@@ -43,8 +48,8 @@ class Handler:
 
     def obj_list_clicked_cb(self, button, user_data):
         self.builder.add_from_file("add_object.glade")
-        self.builder.connect_signals(COHandler(self.builder))
         dialog_add_object = self.builder.get_object("dialog_add_object")
+        self.builder.connect_signals(COHandler(self.builder, dialog_add_object))
         dialog_add_object.show_all()
 
     def onDraw(self,widget,event):

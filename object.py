@@ -6,7 +6,8 @@ class Object:
 
     # construtor
 
-    def __init__(self, name, type):
+    def __init__(self, id, name, type):
+        self.id_ = id
         self.name_ = name
         self.type_ = type
 
