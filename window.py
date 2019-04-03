@@ -13,38 +13,6 @@ class Window:
 		self.lower_ = Point(xmax, ymin)
 		self.upper_ = Point(xmin, ymax)
 
-	# retorna o ponto que representa win_min (esquerdo inferior)
-	def get_win_min(self):
-		return self.win_min_
-
-	# retorna o ponto que representa win_max (direito superior)
-	def get_win_max(self):
-		return self.win_max_
-
-	# retorna o ponto que representa o ponto direito inferior da window
-	def get_win_lower(self):
-		return self.lower_
-
-	# retorna o ponto que representa o ponto esquerdo superior da window
-	def get_win_upper(self):
-		return self.upper_
-
-	# altera o ponto que representa o ponto esquerdo superior da window
-	def set_win_min(self, x, y):
-		self.win_min_ = Point(x, y)
-
-	# altera o ponto que representa o ponto esquerdo superior da window
-	def set_win_max(self, x, y):
-		self.win_max_ = Point(x, y)
-
-	# altera o ponto que representa o ponto esquerdo superior da window
-	def set_win_lower(self, x, y):
-		self.lower_ = Point(x, y)
-
-	# altera o ponto que representa o ponto esquerdo superior da window
-	def set_win_upper(self, x, y):
-		self.upper_ = Point(x, y)
-
 
 	# METODOS PARA MOVIMENTACAO DA WINDOW
 	# Move a window para cima

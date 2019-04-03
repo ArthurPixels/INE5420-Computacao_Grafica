@@ -24,12 +24,14 @@ class COHandler:
         try:
             x = float(entry_point_x.get_text())
             y = float(entry_point_y.get_text())
-            obj = Point(entry_obj_name.get_text(),x,y)
+
+            # descobrir id e passar no lugar do 0
+            id = 0  # VER
+            obj = Point(id, entry_obj_name.get_text(), x, y)
             display_file_.append(obj)
-            print(x)
-            print(y)
-            store = self.builder.get_object("obj_list_store")
-            store.append([obj.name_, obj.type_])
+
+            store = self.builder.get_object("liststore_obj")
+            store.append([id, obj.name_, obj.type_])
             self.dialog_add_object.destroy()
         except:
             print("Error: Invalid value\n")
@@ -40,7 +42,7 @@ class COHandler:
 class Handler:
     def __init__(self,builder):
         self.builder = builder
-        self.store = builder.get_object("obj_list_store")
+        self.store = builder.get_object("liststore_obj")
         print("Handler init ok")
 
     def onMainWindowDestroy(self, *args):

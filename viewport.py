@@ -11,21 +11,5 @@ class Viewport:
 		self.x_max_ = x_max
 		self.y_max_ = y_max
 
-	# retorna x_min
-	def get_xmin(self):
-		return self.x_min_
-
-	# retorna y_min
-	def get_ymin(self):
-		return self.y_min_
-
-	# retorna x_max
-	def get_xmax(self):
-		return self.x_max_
-
-	# retorna y_max
-	def get_ymax(self):
-		return self.y_max_
-
 
 # end of class Viewport

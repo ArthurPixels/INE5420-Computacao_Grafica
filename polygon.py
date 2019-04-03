@@ -7,17 +7,9 @@ class Polygon(Object):
 	# list points_;
 
 	# construtor
-	def __init__(self, name, points):
-		super(Polygon, self).__init__(name, "Polygon")
+	def __init__(self, id, name, points):
+		super(Polygon, self).__init__(id, name, "Polygon")
 		self.points_ = points
-
-	# retorna a lista de pontos do poligono
-	def getListaPontos(self):
-		return self.points_
-
-	# altera a lista de pontos do poligono
-	def setListaPontos(self, newPoints):
-		self.points_ = newPoints
 
 
 # end of class Polygon
