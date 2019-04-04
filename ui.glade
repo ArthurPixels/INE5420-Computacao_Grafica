@@ -289,6 +289,7 @@
                 <property name="height_request">480</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <signal name="draw" handler="on_draw" swapped="no"/>
               </object>
               <packing>
                 <property name="resize">True</property>
@@ -296,7 +297,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkTextView" id="gtk_log">
+              <object class="GtkTextView" id="system_log">
                 <property name="height_request">150</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -304,6 +305,9 @@
                 <property name="margin_right">5</property>
                 <property name="margin_top">5</property>
                 <property name="margin_bottom">5</property>
+                <property name="editable">False</property>
+                <property name="cursor_visible">False</property>
+                <property name="accepts_tab">False</property>
               </object>
               <packing>
                 <property name="resize">True</property>
@@ -320,6 +324,19 @@
     </child>
     <child type="titlebar">
       <placeholder/>
+    </child>
+  </object>
+  <object class="GtkMenu" id="obj_list_popup_menu">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkMenuItem" id="option_add">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Add...</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="add_obj_activated" swapped="no"/>
+      </object>
     </child>
   </object>
 </interface>

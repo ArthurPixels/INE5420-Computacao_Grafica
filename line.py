@@ -14,4 +14,11 @@ class Line(Object):
         self.lastP_ = lastP
 
 
+    # implementacao do metodo abstrato definido em Object
+    def draw(self, cairo):
+        cairo.move_to(self.firstP_.x_, self.firstP_.y_)
+        cairo.line_to(self.lastP_.x_, self.lastP_.y_)
+        cairo.stroke()
+
+
 # end of class Line
