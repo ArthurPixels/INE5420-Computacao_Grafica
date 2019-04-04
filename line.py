@@ -1,7 +1,7 @@
 # classe que define uma linha dentro do universo de representacao
 
-import point
 from object import Object
+
 
 class Line(Object):
 
@@ -15,9 +15,9 @@ class Line(Object):
 
 
     # implementacao do metodo abstrato definido em Object
-    def draw(self, cairo):
-        cairo.move_to(self.firstP_.x_, self.firstP_.y_)
-        cairo.line_to(self.lastP_.x_, self.lastP_.y_)
+    def draw(self, transform_x, transform_y, cairo):
+        cairo.move_to(transform_x(self.firstP_.x_), transform_y(self.firstP_.y_))
+        cairo.line_to(transform_x(self.lastP_.x_), transform_y(self.lastP_.y_))
         cairo.stroke()
 
 

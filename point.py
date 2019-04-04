@@ -16,8 +16,8 @@ class Point(Object):
 
 
 	# implementacao do metodo abstrato definido em Object
-	def draw(self, cairo):
-		cairo.arc(self.x_, self.y_, 1, 0, 2*math.pi)
+	def draw(self, transform_x, transform_y, cairo):
+		cairo.arc(transform_x(self.x_), transform_y(self.y_), 1, 0, 2*math.pi)
 		cairo.fill()
 
 # end of class Point

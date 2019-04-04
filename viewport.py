@@ -1,5 +1,6 @@
 # classe que define a viewport do universo de representacao
 
+
 class Viewport:
 
 	# float x_min_, y_min_, x_max_, y_max_;

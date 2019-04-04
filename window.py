@@ -1,20 +1,21 @@
 # classe que define uma Window do universo de representacao
 
-import point
+from point import Point
+
 
 class Window:
 
 	# Point win_min_, win_max_, lower_, upper_;
 
 	# construtor
-	def __init__(self, xmin, xmax, ymin, ymax):
-		self.win_min_ = Point(xmin, ymin)
-		self.win_max_ = Point(xmax, ymax)
-		self.lower_ = Point(xmax, ymin)
-		self.upper_ = Point(xmin, ymax)
+	def __init__(self, xmin, ymin, xmax, ymax):
+		self.win_min_ = Point(1, "WIN_MIN", xmin, ymin)
+		self.win_max_ = Point(2, "WIN_MAX", xmax, ymax)
+		self.lower_ = Point(3, "LOWER", xmax, ymin)
+		self.upper_ = Point(4, "UPPER", xmin, ymax)
 
 
-	# METODOS PARA MOVIMENTACAO DA WINDOW
+	# METODOS PARA MOVIMENTACAO DA WINDOW (ver essas funcoes)
 	# Move a window para cima
 	def moveUp(self, amount):
 		self.lower_ = Point(self.lower_.get_x(), self.lower_.get_y() - amount)
