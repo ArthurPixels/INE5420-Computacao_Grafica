@@ -1,5 +1,5 @@
 import gi
-gi.require_version('Gtk', '3.0')
+# gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from object import Object
 from point import Point
@@ -28,18 +28,29 @@ id_cont_ = 0
 
 ################# FUNCTIONS TO ADAPT X AND Y FROM WINDOW TO VIEWPORT #################
 def viewport_transform_x(x):
-    return (x - window_.win_min_.x_)/(window_.win_max_.x_ - window_.win_min_.x_) * (viewport_.x_max_ - viewport_.x_min_)
+    result = (
+        (x - window_.win_min_.x_) /
+        (window_.win_max_.x_ - window_.win_min_.x_) *
+        (viewport_.x_max_ - viewport_.x_min_)
+    )
+    return result
+
 
 def viewport_transform_y(y):
-    return (1 - (y - window_.win_min_.y_)/(window_.win_max_.y_ - window_.win_min_.y_)) * (viewport_.y_max_ - viewport_.y_min_)
+    result = (
+                (
+                    (1 - (y - window_.win_min_.y_)) /
+                    (window_.win_max_.y_ - window_.win_min_.y_)
+                ) * (viewport_.y_max_ - viewport_.y_min_)
+            )
+    return result
 
 
 ################# Create object dialog signal handler #################
 class COHandler:
-    def __init__(self,builder,dialog_add_object):
+    def __init__(self, builder, dialog_add_object):
         self.builder = builder
         self.dialog_add_object = dialog_add_object
-
 
     # defines a new object insertion into the system
     def bt_create_object_clicked_cb(self, button):
@@ -68,11 +79,21 @@ class COHandler:
                 x2 = float(self.builder.get_object("entry_line_x2").get_text())
                 y2 = float(self.builder.get_object("entry_line_y2").get_text())
 
+<<<<<<< HEAD
                 obj = DrawableLine(id, name, Point(x1, y1), Point(x2, y2))
+=======
+                obj = Line(
+                    id,
+                    name,
+                    Point(1, "P1", x1, y1),
+                    Point(2, "P2", x2, y2)
+                )
+>>>>>>> 383f2b8c4874fba7e0bc08252952e3dd6d34760d
 
             # new wireframe insertion
             elif page == 2:
-                buffer = self.builder.get_object("wireframe_points_view").get_buffer()
+                buffer = self.builder.get_object(
+                    "wireframe_points_view").get_buffer()
                 start_iter = buffer.get_start_iter()
                 end_iter = buffer.get_end_iter()
                 entrada = buffer.get_text(start_iter, end_iter, False)
@@ -97,8 +118,15 @@ class COHandler:
 
             self.dialog_add_object.destroy()
         except ValueError:
+<<<<<<< HEAD
             MainWindow.print_on_log(self.builder, "Error: Invalid Value / All fields need to be defined\n")
 
+=======
+            WindowBuilder.print_log(
+                self.builder,
+                "Error: Invalid Value / All fields need to be defined\n"
+            )
+>>>>>>> 383f2b8c4874fba7e0bc08252952e3dd6d34760d
 
     # defines the funcionality of the cancel button
     def bt_cancel_create_object_clicked_cb(self, button):
@@ -108,7 +136,7 @@ class COHandler:
 
 ################# #################
 class Handler:
-    def __init__(self,builder):
+    def __init__(self, builder):
         self.builder = builder
         self.store = builder.get_object("liststore_obj")
         print("Handler init ok")
@@ -120,15 +148,18 @@ class Handler:
     def obj_list_clicked_cb(self, widget, event):
         # clique com o botao direito
         if event.button == 3:
-            self.builder.get_object("obj_list_popup_menu").popup_at_pointer(None)
+            self.builder.get_object(
+                "obj_list_popup_menu").popup_at_pointer(None)
 
     # "add object" option selected from obj_list_popup_menu
     def add_obj_activated(self, widget):
         self.builder.add_from_file("add_object.glade")
         dialog_add_object = self.builder.get_object("dialog_add_object")
-        self.builder.connect_signals(COHandler(self.builder, dialog_add_object))
+        self.builder.connect_signals(
+            COHandler(self.builder, dialog_add_object))
         dialog_add_object.show_all()
 
+<<<<<<< HEAD
     # "remove object" option selected from obj_list_popup_menu
     def delete_obj_activated(self, widget):
         try:
@@ -150,12 +181,16 @@ class Handler:
 
     # draws the objects in the display view on the world
     def on_draw(self,widget,cairo):
+=======
+    def on_draw(self, widget, cairo):
+>>>>>>> 383f2b8c4874fba7e0bc08252952e3dd6d34760d
         cairo.set_line_width(1)
-        cairo.set_source_rgb(0,0,1)
+        cairo.set_source_rgb(0, 0, 1)
 
         for obj in display_file_:
             obj.draw(viewport_transform_x, viewport_transform_y, cairo)
 
+<<<<<<< HEAD
 
     ################ NAVIGATION #####################
     # Zoom in
@@ -236,6 +271,51 @@ class Handler:
                 model, item = self.builder.get_object("obj_list").get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+=======
+    # ############### Navigation #####################
+    def bt_zoom_in_clicked_cb(self, button):
+        pass
+
+    def bt_zoom_out_clicked_cb(self, button):
+        pass
+
+    def bt_rotate_view_clockwise_clicked_cb(self, button):
+        pass
+
+    def bt_rotate_view_counter_clockwise_clicked_cb(self, button):
+        pass
+
+    def bt_move_view_left_clicked_cb(self, button):
+        pass
+
+    def bt_move_view_down_clicked_cb(self, button):
+        pass
+
+    def bt_move_view_right_clicked_cb(self, button):
+        pass
+
+    def bt_move_view_up_clicked_cb(self, button):
+        pass
+
+    # Object
+    def bt_rotate_obj_clockwise_clicked_cb(self, button):
+        pass
+
+    def bt_rotate_obj_counter_clockwise_clicked_cb(self, button):
+        pass
+
+    def bt_move_obj_left_clicked_cb(self, button):
+        pass
+
+    def bt_move_obj_down_clicked_cb(self, button):
+        pass
+
+    def bt_move_obj_right_clicked_cb(self, button):
+        pass
+
+    def bt_move_obj_up_clicked_cb(self, button):
+        pass
+>>>>>>> 383f2b8c4874fba7e0bc08252952e3dd6d34760d
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
@@ -291,15 +371,12 @@ class Handler:
 class MainWindow:
     def __init__(self):
         self.ui_obj_list = None
-        self.text_view = None
 
     def run(self):
         builder = Gtk.Builder()
         builder.add_from_file("ui.glade")
         builder.connect_signals(Handler(builder))
         self.ui_obj_list = builder.get_object("obj_list")
-        self.text_view = builder.get_object("system_log")
-
 
         gtk_window = builder.get_object("gtk_window")
         gtk_window.show_all()
@@ -307,12 +384,24 @@ class MainWindow:
         Gtk.main()
 
     # function to append a text at the end of the buffer from system_log
+<<<<<<< HEAD
     def print_on_log(builder, text):
         buffer = builder.get_object("system_log").get_buffer()
+=======
+    @staticmethod
+    def print_log(builder, text):
+        text_view = builder.get_object("system_log")
+        buffer = text_view.get_buffer()
+>>>>>>> 383f2b8c4874fba7e0bc08252952e3dd6d34760d
         iterator = buffer.get_iter_at_offset(-1)
         buffer.insert(iterator, text, -1)
 
 # end of class MainWindow
 
+<<<<<<< HEAD
 if  __name__ =='__main__':
     MainWindow().run()
+=======
+if __name__ == '__main__':
+    WindowBuilder().run()
+>>>>>>> 383f2b8c4874fba7e0bc08252952e3dd6d34760d
