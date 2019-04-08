@@ -3,6 +3,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from object import Object
 from point import Point
+from drawable_line import DrawableLine
+from drawable_point import DrawablePoint
 from line import Line
 from polygon import Polygon
 from viewport import Viewport
@@ -10,20 +12,21 @@ from window import Window
 import cairo
 
 
-# CONSTANTS
+################# CONSTANTS #################
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
 VIEWPORT_HEIGHT = 600
 VIEWPORT_WIDTH = 600
 
 
-# GENERAL ATTRIBUTES
+################# GENERAL ATTRIBUTES #################
 window_ = Window(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 viewport_ = Viewport(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
 display_file_ = []
+id_cont_ = 0
 
 
-# FUNCTIONS TO ADAPT X AND Y FROM WINDOW TO VIEWPORT
+################# FUNCTIONS TO ADAPT X AND Y FROM WINDOW TO VIEWPORT #################
 def viewport_transform_x(x):
     return (x - window_.win_min_.x_)/(window_.win_max_.x_ - window_.win_min_.x_) * (viewport_.x_max_ - viewport_.x_min_)
 
@@ -31,7 +34,7 @@ def viewport_transform_y(y):
     return (1 - (y - window_.win_min_.y_)/(window_.win_max_.y_ - window_.win_min_.y_)) * (viewport_.y_max_ - viewport_.y_min_)
 
 
-# Create object dialog signal handler
+################# Create object dialog signal handler #################
 class COHandler:
     def __init__(self,builder,dialog_add_object):
         self.builder = builder
@@ -47,14 +50,16 @@ class COHandler:
             if name == "":
                 raise ValueError()
 
-            id = len(display_file_)
+            global id_cont_
+            id = id_cont_
+            id_cont_ += 1
 
             # new point insertion
             if page == 0:
                 x = float(self.builder.get_object("entry_point_x").get_text())
                 y = float(self.builder.get_object("entry_point_y").get_text())
 
-                obj = Point(id, name, x, y)
+                obj = DrawablePoint(id, name, x, y)
 
             # new line insertion
             elif page == 1:
@@ -63,7 +68,7 @@ class COHandler:
                 x2 = float(self.builder.get_object("entry_line_x2").get_text())
                 y2 = float(self.builder.get_object("entry_line_y2").get_text())
 
-                obj = Line(id, name, Point(1, "P1", x1, y1), Point(2, "P2", x2, y2))
+                obj = DrawableLine(id, name, Point(x1, y1), Point(x2, y2))
 
             # new wireframe insertion
             elif page == 2:
@@ -76,7 +81,7 @@ class COHandler:
                 pontos = []
                 for i in range(len(entrada)):
                     x, y = entrada[i].split()
-                    pontos.append(Point(i, "P" + str(i), float(x), float(y)))
+                    pontos.append(Point(float(x), float(y)))
 
                 obj = Polygon(id, name, pontos)
 
@@ -92,7 +97,7 @@ class COHandler:
 
             self.dialog_add_object.destroy()
         except ValueError:
-            WindowBuilder.print_log(self.builder, "Error: Invalid Value / All fields need to be defined\n")
+            MainWindow.print_on_log(self.builder, "Error: Invalid Value / All fields need to be defined\n")
 
 
     # defines the funcionality of the cancel button
@@ -101,7 +106,7 @@ class COHandler:
 
 # end of class COHandler
 
-
+################# #################
 class Handler:
     def __init__(self,builder):
         self.builder = builder
@@ -124,6 +129,26 @@ class Handler:
         self.builder.connect_signals(COHandler(self.builder, dialog_add_object))
         dialog_add_object.show_all()
 
+    # "remove object" option selected from obj_list_popup_menu
+    def delete_obj_activated(self, widget):
+        try:
+            model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+            id = model.get_value(item, 0)
+
+            for obj in display_file_:
+                if obj.id_ == id:
+                    display_file_.remove(obj)
+                    break
+
+            model.remove(item)
+
+            # re-draw objects on drawing_area
+            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+        except TypeError:
+                MainWindow.print_on_log(self.builder, "No object selected to be removed\n")
+
+
+    # draws the objects in the display view on the world
     def on_draw(self,widget,cairo):
         cairo.set_line_width(1)
         cairo.set_source_rgb(0,0,1)
@@ -132,56 +157,138 @@ class Handler:
             obj.draw(viewport_transform_x, viewport_transform_y, cairo)
 
 
-
-    ################ Navigation #####################
+    ################ NAVIGATION #####################
+    # Zoom in
     def bt_zoom_in_clicked_cb(self,button):
-        pass
+        try:
+            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            amount = 10
 
+            if self.builder.get_object("radio_option_window").get_active():
+                window_.zoomIn(amount)
+
+            else:
+                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                id = model.get_value(item, 0)
+                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+
+            # re-draw objects on drawing_area
+            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+        except TypeError:
+            MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
+
+    # Zoom out
     def bt_zoom_out_clicked_cb(self,button):
+        try:
+            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            amount = 10
+
+            if self.builder.get_object("radio_option_window").get_active():
+                window_.zoomOut(amount)
+
+            else:
+                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                id = model.get_value(item, 0)
+                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+
+            # re-draw objects on drawing_area
+            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+        except TypeError:
+            MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
+
+    # Rotate left
+    def bt_rotate_left_clockwise_clicked_cb(self,button):
         pass
 
-    def bt_rotate_view_clockwise_clicked_cb(self,button):
+    # Rotate right
+    def bt_rotate_rigth_clockwise_clicked_cb(self,button):
         pass
 
-    def bt_rotate_view_counter_clockwise_clicked_cb(self,button):
-        pass
+    # move left
+    def bt_move_left_clicked_cb(self,button):
+        try:
+            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            amount = 10
 
-    def bt_move_view_left_clicked_cb(self,button):
-        pass
+            if self.builder.get_object("radio_option_window").get_active():
+                window_.moveLeft(amount)
 
-    def bt_move_view_down_clicked_cb(self,button):
-        pass
+            else:
+                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                id = model.get_value(item, 0)
+                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
 
-    def bt_move_view_right_clicked_cb(self,button):
-        pass
+            # re-draw objects on drawing_area
+            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+        except TypeError:
+                MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
 
-    def bt_move_view_up_clicked_cb(self,button):
-        pass
+    # move down
+    def bt_move_down_clicked_cb(self,button):
+        try:
+            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            amount = 10
 
-    # Object
-    def bt_rotate_obj_clockwise_clicked_cb(self,button):
-        pass
+            if self.builder.get_object("radio_option_window").get_active():
+                window_.moveDown(amount)
 
-    def bt_rotate_obj_counter_clockwise_clicked_cb(self,button):
-        pass
+            else:
+                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                id = model.get_value(item, 0)
+                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
 
-    def bt_move_obj_left_clicked_cb(self,button):
-        pass
+            # re-draw objects on drawing_area
+            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+        except TypeError:
+            MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
 
-    def bt_move_obj_down_clicked_cb(self,button):
-        pass
+    # move right
+    def bt_move_right_clicked_cb(self,button):
+        try:
+            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            amount = 10
 
-    def bt_move_obj_right_clicked_cb(self,button):
-        pass
+            # identify who is the radio button selected
+            # window radio option selected
+            if self.builder.get_object("radio_option_window").get_active():
+                window_.moveRight(amount)
 
-    def bt_move_obj_up_clicked_cb(self,button):
-        pass
+            # objects radio option selected
+            else:
+                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+
+                id = model.get_value(item, 0)
+                # IMPLEMENT
+
+            da = self.builder.get_object("gtk_drawing_area")
+            Gtk.Widget.queue_draw(da)
+
+        except TypeError:
+                MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
+
+    # move up
+    def bt_move_up_clicked_cb(self,button):
+        try:
+            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            amount = 10
+
+            if self.builder.get_object("radio_option_window").get_active():
+                window_.moveUp(amount)
+
+            else:
+                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                id = model.get_value(item, 0)
+                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+
+            # re-draw objects on drawing_area
+            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+        except TypeError:
+            MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
 
 
 # end of class Handler
 
-
-class WindowBuilder:
+class MainWindow:
     def __init__(self):
         self.ui_obj_list = None
         self.text_view = None
@@ -200,12 +307,12 @@ class WindowBuilder:
         Gtk.main()
 
     # function to append a text at the end of the buffer from system_log
-    def print_log(self, builder, text):
-        buffer = self.text_view.get_buffer()
+    def print_on_log(builder, text):
+        buffer = builder.get_object("system_log").get_buffer()
         iterator = buffer.get_iter_at_offset(-1)
         buffer.insert(iterator, text, -1)
 
-# end of class WindowBuilder
+# end of class MainWindow
 
 if  __name__ =='__main__':
-    WindowBuilder().run()
+    MainWindow().run()
