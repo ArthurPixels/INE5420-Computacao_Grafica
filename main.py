@@ -92,7 +92,7 @@ class COHandler:
 
             self.dialog_add_object.destroy()
         except ValueError:
-            WindowBuilder.print_on_log(self.builder, "Error: Invalid Value / All fields need to be defined\n")
+            WindowBuilder.print_log(self.builder, "Error: Invalid Value / All fields need to be defined\n")
 
 
     # defines the funcionality of the cancel button
@@ -131,18 +131,67 @@ class Handler:
         for obj in display_file_:
             obj.draw(viewport_transform_x, viewport_transform_y, cairo)
 
+
+
+    ################ Navigation #####################
+    def bt_zoom_in_clicked_cb(self,button):
+        pass
+
+    def bt_zoom_out_clicked_cb(self,button):
+        pass
+
+    def bt_rotate_view_clockwise_clicked_cb(self,button):
+        pass
+
+    def bt_rotate_view_counter_clockwise_clicked_cb(self,button):
+        pass
+
+    def bt_move_view_left_clicked_cb(self,button):
+        pass
+
+    def bt_move_view_down_clicked_cb(self,button):
+        pass
+
+    def bt_move_view_right_clicked_cb(self,button):
+        pass
+
+    def bt_move_view_up_clicked_cb(self,button):
+        pass
+
+    # Object
+    def bt_rotate_obj_clockwise_clicked_cb(self,button):
+        pass
+
+    def bt_rotate_obj_counter_clockwise_clicked_cb(self,button):
+        pass
+
+    def bt_move_obj_left_clicked_cb(self,button):
+        pass
+
+    def bt_move_obj_down_clicked_cb(self,button):
+        pass
+
+    def bt_move_obj_right_clicked_cb(self,button):
+        pass
+
+    def bt_move_obj_up_clicked_cb(self,button):
+        pass
+
+
 # end of class Handler
 
 
 class WindowBuilder:
     def __init__(self):
         self.ui_obj_list = None
+        self.text_view = None
 
     def run(self):
         builder = Gtk.Builder()
         builder.add_from_file("ui.glade")
         builder.connect_signals(Handler(builder))
         self.ui_obj_list = builder.get_object("obj_list")
+        self.text_view = builder.get_object("system_log")
 
 
         gtk_window = builder.get_object("gtk_window")
@@ -151,9 +200,8 @@ class WindowBuilder:
         Gtk.main()
 
     # function to append a text at the end of the buffer from system_log
-    def print_on_log(builder, text):
-        text_view = builder.get_object("system_log")
-        buffer = text_view.get_buffer()
+    def print_log(self, builder, text):
+        buffer = self.text_view.get_buffer()
         iterator = buffer.get_iter_at_offset(-1)
         buffer.insert(iterator, text, -1)
 
