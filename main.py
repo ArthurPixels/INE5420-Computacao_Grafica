@@ -106,9 +106,9 @@ class COHandler:
 
 # end of class COHandler
 
-################# #################
+# ################ #################
 class Handler:
-    def __init__(self,builder):
+    def __init__(self, builder):
         self.builder = builder
         self.store = builder.get_object("liststore_obj")
         print("Handler init ok")
@@ -157,6 +157,14 @@ class Handler:
 
 
     ################ NAVIGATION #####################
+    # step changed
+    def entry_step_preedit_changed_cb(self, preedit, user_data):
+        pass
+    
+    # angle changed
+    def entry_angle_preedit_changed_cb(self, preedit, user_data):
+        pass
+
     # Zoom in
     def bt_zoom_in_clicked_cb(self,button):
         try:
