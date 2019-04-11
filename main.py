@@ -1,5 +1,4 @@
 import gi
-gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from object import Object
 from point import Point
@@ -10,36 +9,37 @@ from polygon import Polygon
 from viewport import Viewport
 from window import Window
 import cairo
+gi.require_version('Gtk', '3.0')
 
 
-################# CONSTANTS #################
+# ################ CONSTANTS #################
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
 VIEWPORT_HEIGHT = 600
 VIEWPORT_WIDTH = 600
 
 
-################# GENERAL ATTRIBUTES #################
+# ################ GENERAL ATTRIBUTES #################
 window_ = Window(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 viewport_ = Viewport(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
 display_file_ = []
 id_cont_ = 0
 
 
-################# FUNCTIONS TO ADAPT X AND Y FROM WINDOW TO VIEWPORT #################
+# ########## FUNCTIONS TO ADAPT X AND Y FROM WINDOW TO VIEWPORT ###############
 def viewport_transform_x(x):
     return (x - window_.win_min_.x_)/(window_.win_max_.x_ - window_.win_min_.x_) * (viewport_.x_max_ - viewport_.x_min_)
+
 
 def viewport_transform_y(y):
     return (1 - (y - window_.win_min_.y_)/(window_.win_max_.y_ - window_.win_min_.y_)) * (viewport_.y_max_ - viewport_.y_min_)
 
 
-################# Create object dialog signal handler #################
-class COHandler:
-    def __init__(self,builder,dialog_add_object):
-        self.builder = builder
+# ################ Create object dialog signal handler #################
+class CreateObjectHandler:
+    def __init__(self, main_window, dialog_add_object):
+        self.builder = main_window.builder
         self.dialog_add_object = dialog_add_object
-
 
     # defines a new object insertion into the system
     def bt_create_object_clicked_cb(self, button):
@@ -72,7 +72,8 @@ class COHandler:
 
             # new wireframe insertion
             elif page == 2:
-                buffer = self.builder.get_object("wireframe_points_view").get_buffer()
+                buffer = self.builder.get_object("wireframe_points_view")\
+                        .get_buffer()
                 start_iter = buffer.get_start_iter()
                 end_iter = buffer.get_end_iter()
                 entrada = buffer.get_text(start_iter, end_iter, False)
@@ -97,21 +98,23 @@ class COHandler:
 
             self.dialog_add_object.destroy()
         except ValueError:
-            MainWindow.print_on_log(self.builder, "Error: Invalid Value / All fields need to be defined\n")
-
+            MainWindow.print_log(
+                "Error: Invalid Value / All fields need to be defined\n"
+            )
 
     # defines the funcionality of the cancel button
     def bt_cancel_create_object_clicked_cb(self, button):
         self.dialog_add_object.destroy()
 
-# end of class COHandler
+# end of class CreateObjectHandler
+
 
 # ################ #################
-class Handler:
-    def __init__(self, builder):
-        self.builder = builder
-        self.store = builder.get_object("liststore_obj")
-        print("Handler init ok")
+class MainWindowHandler:
+    def __init__(self, main_window):
+        self.main_window = main_window
+        self.builder = main_window.builder
+        self.store = self.builder.get_object("liststore_obj")
 
     def onMainWindowDestroy(self, *args):
         Gtk.main_quit()
@@ -120,19 +123,23 @@ class Handler:
     def obj_list_clicked_cb(self, widget, event):
         # clique com o botao direito
         if event.button == 3:
-            self.builder.get_object("obj_list_popup_menu").popup_at_pointer(None)
+            self.builder.get_object("obj_list_popup_menu")\
+                    .popup_at_pointer(None)
 
     # "add object" option selected from obj_list_popup_menu
     def add_obj_activated(self, widget):
         self.builder.add_from_file("add_object.glade")
         dialog_add_object = self.builder.get_object("dialog_add_object")
-        self.builder.connect_signals(COHandler(self.builder, dialog_add_object))
+        self.builder.connect_signals(CreateObjectHandler(
+            self.main_window, dialog_add_object)
+        )
         dialog_add_object.show_all()
 
     # "remove object" option selected from obj_list_popup_menu
     def delete_obj_activated(self, widget):
         try:
-            model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+            model, item = self.builder.get_object("obj_list")\
+                    .get_selection().get_selected()
             id = model.get_value(item, 0)
 
             for obj in display_file_:
@@ -145,114 +152,134 @@ class Handler:
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-                MainWindow.print_on_log(self.builder, "No object selected to be removed\n")
+            MainWindow.print_log("No object selected to be removed\n")
 
     # draws the objects in the world of representation
-    def on_draw(self,widget,cairo):
-        cairo.set_line_width(1)
-        cairo.set_source_rgb(0,0,1)
-
+    def on_draw(self, widget, cairo_):
+        viewport_.x_max_
+        cairo_.set_line_width(1)
+        cairo_.set_source_rgb(0, 0, 1)
         for obj in display_file_:
-            obj.draw(viewport_transform_x, viewport_transform_y, cairo)
+            obj.draw(viewport_transform_x, viewport_transform_y, cairo_)
 
-
-    ################ NAVIGATION #####################
+    # ############### NAVIGATION #####################
     # step changed
     def entry_step_preedit_changed_cb(self, preedit, user_data):
         pass
-    
+
     # angle changed
     def entry_angle_preedit_changed_cb(self, preedit, user_data):
         pass
 
     # Zoom in
-    def bt_zoom_in_clicked_cb(self,button):
+    def bt_zoom_in_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            # PEGAR VALOR DE ALGUM ENTRY BOX
+            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
             amount = 10
 
             if self.builder.get_object("radio_option_window").get_active():
                 window_.zoomIn(amount)
 
             else:
-                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                model, item = self.builder.get_object("obj_list")\
+                        .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-            MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
+            MainWindow.print_log(
+                """You must select an object first
+                or switch to Window movementation mode\n"""
+            )
 
     # Zoom out
-    def bt_zoom_out_clicked_cb(self,button):
+    def bt_zoom_out_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            # PEGAR VALOR DE ALGUM ENTRY BOX
+            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
             amount = 10
 
             if self.builder.get_object("radio_option_window").get_active():
                 window_.zoomOut(amount)
 
             else:
-                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                model, item = self.builder.get_object("obj_list")\
+                        .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-            MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
+            MainWindow.print_log(
+                """You must select an object first
+                or switch to Window movementation mode\n"""
+            )
 
     # Rotate left
-    def bt_rotate_left_clockwise_clicked_cb(self,button):
+    def bt_rotate_left_clockwise_clicked_cb(self, button):
         pass
 
     # Rotate right
-    def bt_rotate_rigth_clockwise_clicked_cb(self,button):
+    def bt_rotate_rigth_clockwise_clicked_cb(self, button):
         pass
 
     # move left
-    def bt_move_left_clicked_cb(self,button):
+    def bt_move_left_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            # PEGAR VALOR DE ALGUM ENTRY BOX
+            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
             amount = 10
 
             if self.builder.get_object("radio_option_window").get_active():
                 window_.moveLeft(amount)
 
             else:
-                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                model, item = self.builder.get_object("obj_list")\
+                        .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-                MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
+            MainWindow.print_log(
+                """You must select an object first
+                or switch to Window movementation mode\n"""
+            )
 
     # move down
-    def bt_move_down_clicked_cb(self,button):
+    def bt_move_down_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            # PEGAR VALOR DE ALGUM ENTRY BOX
+            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
             amount = 10
 
             if self.builder.get_object("radio_option_window").get_active():
                 window_.moveDown(amount)
 
             else:
-                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                model, item = self.builder.get_object("obj_list")\
+                        .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-            MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
+            MainWindow.print_log(
+                """You must select an object first
+                or switch to Window movementation mode\n"""
+            )
 
     # move right
-    def bt_move_right_clicked_cb(self,button):
+    def bt_move_right_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            # PEGAR VALOR DE ALGUM ENTRY BOX
+            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
             amount = 10
 
             # identify who is the radio button selected
@@ -262,7 +289,8 @@ class Handler:
 
             # objects radio option selected
             else:
-                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                model, item = self.builder.get_object("obj_list")\
+                        .get_selection().get_selected()
 
                 id = model.get_value(item, 0)
                 # IMPLEMENT
@@ -271,55 +299,67 @@ class Handler:
             Gtk.Widget.queue_draw(da)
 
         except TypeError:
-                MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
+            MainWindow.print_log(
+                """You must select an object first
+                or switch to Window movementation mode\n"""
+            )
 
     # move up
-    def bt_move_up_clicked_cb(self,button):
+    def bt_move_up_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
+            # PEGAR VALOR DE ALGUM ENTRY BOX
+            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
             amount = 10
 
             if self.builder.get_object("radio_option_window").get_active():
                 window_.moveUp(amount)
 
             else:
-                model, item = self.builder.get_object("obj_list").get_selection().get_selected()
+                model, item = self.builder.get_object("obj_list")\
+                        .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
 
             # re-draw objects on drawing_area
-            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+            Gtk.Widget.queue_draw()
         except TypeError:
-            MainWindow.print_on_log(self.builder, "You must select an object first or switch to Window movementation mode\n")
+            MainWindow.print_log(
+                self.builder,
+                """You must select an object first
+                or switch to Window movementation mode\n"""
+            )
 
 
 # end of class Handler
 
 class MainWindow:
     def __init__(self):
+        self.builder = None
         self.ui_obj_list = None
         self.text_view = None
+        self.drawing_area = None
 
     def run(self):
-        builder = Gtk.Builder()
-        builder.add_from_file("ui.glade")
-        builder.connect_signals(Handler(builder))
-        self.ui_obj_list = builder.get_object("obj_list")
-        self.text_view = builder.get_object("system_log")
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file("ui.glade")
+        self.builder.connect_signals(MainWindowHandler(self))
+        self.ui_obj_list = self.builder.get_object("obj_list")
+        self.text_view = self.builder.get_object("system_log")
+        self.drawing_area = self.builder.get_object("gtk_drawing_area")
 
-
-        gtk_window = builder.get_object("gtk_window")
+        gtk_window = self.builder.get_object("gtk_window")
         gtk_window.show_all()
 
         Gtk.main()
 
     # function to append a text at the end of the buffer from system_log
-    def print_on_log(builder, text):
-        buffer = builder.get_object("system_log").get_buffer()
+    def print_log(self, text):
+        buffer = self.text_view.get_buffer()
         iterator = buffer.get_iter_at_offset(-1)
         buffer.insert(iterator, text, -1)
 
 # end of class MainWindow
 
-if  __name__ =='__main__':
+
+if __name__ == '__main__':
     MainWindow().run()
