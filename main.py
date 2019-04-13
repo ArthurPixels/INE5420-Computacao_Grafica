@@ -4,35 +4,19 @@ from object import Object
 from point import Point
 from drawable_line import DrawableLine
 from drawable_point import DrawablePoint
-from line import Line
 from polygon import Polygon
 from viewport import Viewport
 from window import Window
 import cairo
+import numpy as np
 gi.require_version('Gtk', '3.0')
 
 
-# ################ CONSTANTS #################
-WINDOW_HEIGHT = 800
-WINDOW_WIDTH = 800
-VIEWPORT_HEIGHT = 600
-VIEWPORT_WIDTH = 600
-
-
 # ################ GENERAL ATTRIBUTES #################
-window_ = Window(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
-viewport_ = Viewport(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
+window_ = Window(Point(0, 0), 0, 1, 1)
+viewport_ = Viewport(0, 0, 2, 2)
 display_file_ = []
 id_cont_ = 0
-
-
-# ########## FUNCTIONS TO ADAPT X AND Y FROM WINDOW TO VIEWPORT ###############
-def viewport_transform_x(x):
-    return (x - window_.win_min_.x_)/(window_.win_max_.x_ - window_.win_min_.x_) * (viewport_.x_max_ - viewport_.x_min_)
-
-
-def viewport_transform_y(y):
-    return (1 - (y - window_.win_min_.y_)/(window_.win_max_.y_ - window_.win_min_.y_)) * (viewport_.y_max_ - viewport_.y_min_)
 
 
 # ################ Create object dialog signal handler #################
@@ -156,11 +140,18 @@ class MainWindowHandler:
 
     # draws the objects in the world of representation
     def on_draw(self, widget, cairo_):
-        viewport_.x_max_
+        # def viewport_transform(point: Point):
+        #     coords = np.matrix([[point.x, point.y, 1]])
+        #
+        #     return Point()
+
+        # to_SCN
+        world_transform = window_.transform  # .dot()
+
         cairo_.set_line_width(1)
         cairo_.set_source_rgb(0, 0, 1)
         for obj in display_file_:
-            obj.draw(viewport_transform_x, viewport_transform_y, cairo_)
+            obj.draw(world_transform, cairo_)
 
     # ############### NAVIGATION #####################
     # step changed
@@ -349,6 +340,10 @@ class MainWindow:
 
         gtk_window = self.builder.get_object("gtk_window")
         gtk_window.show_all()
+
+        window_.width = self.drawing_area.get_allocated_width()
+        window_.height = self.drawing_area.get_allocated_height()
+        window_.to_SNC()
 
         Gtk.main()
 

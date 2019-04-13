@@ -1,19 +1,50 @@
 # classe que define uma Window do universo de representacao
 
 from point import Point
+import numpy as np
 
 
 class Window:
-
     # Point win_min_, win_max_, lower_, upper_;
 
     # construtor
-    def __init__(self, xmin, ymin, xmax, ymax):
-        self.win_min_ = Point(xmin, ymin)
-        self.win_max_ = Point(xmax, ymax)
-        self.lower_ = Point(xmax, ymin)
-        self.upper_ = Point(xmin, ymax)
+    def __init__(self, wc: Point, theta, width, height):
+        self.wc = wc
+        self.theta = theta
+        self.width = width
+        self.height = height
+        self.transform = self.to_SNC()
 
+    def translate(self, translation):
+        self.wc += translation
+        self.transform = self.to_SNC()
+
+    def rotate(self, rotation):
+        self.theta += rotation
+        self.transform = self.to_SNC()
+
+    def to_SNC(self):
+        translation = np.array((
+            [1, 0, 0],
+            [0, 1, 0],
+            [self.wc.x, self.wc.y, 1]
+        ), dtype=float)
+
+        [cos_theta] = np.cos([self.theta])
+        [sin_theta] = np.sin([self.theta])
+        rotation = np.array((
+            [cos_theta, -sin_theta, 0],
+            [sin_theta, cos_theta, 0],
+            [0, 0, 1]
+        ), dtype=float)
+
+        normalization = np.array((
+            [1, 0, 0],
+            [0, 1, 0],
+            [2/self.width, 2/self.height, 1]
+        ), dtype=float)
+        transform = translation.dot(rotation).dot(normalization)
+        return transform
 
     # METODOS PARA MOVIMENTACAO DA WINDOW (ver essas funcoes)
     # Move a window para cima

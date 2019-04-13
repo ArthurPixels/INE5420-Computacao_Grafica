@@ -14,7 +14,6 @@ class Object:
         self.name_ = name
         self.type_ = type
 
-
     # metodo abstrato que define a maneira como o objeto eh desenhado na tela
     @abstractmethod
     def draw(self, cairo):
