@@ -16,8 +16,11 @@ class Object:
 
     # metodo abstrato que define a maneira como o objeto eh desenhado na tela
     @abstractmethod
-    def draw(self, cairo):
+    def draw(self, transform, da_width, da_height, cairo):
         pass
 
+    @abstractmethod
+    def update_scn(self, transform):
+        pass
 
 # end of class Object

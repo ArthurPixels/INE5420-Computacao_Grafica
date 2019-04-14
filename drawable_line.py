@@ -18,16 +18,26 @@ class DrawableLine(Line, Object):
         self.scn = Line(Point(0, 0), Point(0, 0))
 
     # implementacao do metodo abstrato definido em Object
-    def draw(self, transform: np.array, cairo):
+    def update_scn(self, transform):
         [self.scn.start.x, self.scn.start.y, nz] = np.array(
-                ([self.start.x, self.start.y, 1]), dtype=float)\
-                .dot(transform)
+                ([self.start.x, self.start.y, 1]),
+                dtype=float).dot(transform)
         [self.scn.end.x, self.scn.end.y, nz] = np.array(
-                ([self.end.x, self.end.y, 1]), dtype=float)\
-                .dot(transform)
+                ([self.end.x, self.end.y, 1]),
+                dtype=float).dot(transform)
+
+    # implementacao do metodo abstrato definido em Object
+    def draw(self, transform: np.array, cairo):
+        print(transform)
+        [v_start_x, v_start_y, nz] = np.array(
+                ([self.scn.start.x, self.scn.start.y, 1]),
+                dtype=float).dot(transform)
+        [v_end_x, v_end_y, nz] = np.array(
+                ([self.scn.end.x, self.scn.end.y, 1]),
+                dtype=float).dot(transform)
         cairo.save()
-        cairo.move_to(self.scn.start.x, self.scn.start.y)
-        cairo.line_to(self.scn.end.x, self.scn.end.y)
+        cairo.move_to(v_start_x, v_start_y)
+        cairo.line_to(v_end_x, v_end_y)
         cairo.stroke()
         cairo.restore()
 

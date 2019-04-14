@@ -13,8 +13,7 @@ gi.require_version('Gtk', '3.0')
 
 
 # ################ GENERAL ATTRIBUTES #################
-window_ = Window(Point(0, 0), 0, 1, 1)
-viewport_ = Viewport(0, 0, 2, 2)
+window_ = Window(Point(0, 0), 0, 100, 100)
 display_file_ = []
 id_cont_ = 0
 
@@ -22,6 +21,7 @@ id_cont_ = 0
 # ################ Create object dialog signal handler #################
 class CreateObjectHandler:
     def __init__(self, main_window, dialog_add_object):
+        self.main_window = main_window
         self.builder = main_window.builder
         self.dialog_add_object = dialog_add_object
 
@@ -82,7 +82,7 @@ class CreateObjectHandler:
 
             self.dialog_add_object.destroy()
         except ValueError:
-            MainWindow.print_log(
+            self.main_window.print_log(
                 "Error: Invalid Value / All fields need to be defined\n"
             )
 
@@ -99,6 +99,8 @@ class MainWindowHandler:
         self.main_window = main_window
         self.builder = main_window.builder
         self.store = self.builder.get_object("liststore_obj")
+        self.da_width = 0
+        self.da_height = 0
 
     def onMainWindowDestroy(self, *args):
         Gtk.main_quit()
@@ -136,7 +138,7 @@ class MainWindowHandler:
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-            MainWindow.print_log("No object selected to be removed\n")
+            self.main_window.print_log("No object selected to be removed\n")
 
     # draws the objects in the world of representation
     def on_draw(self, widget, cairo_):
@@ -145,13 +147,33 @@ class MainWindowHandler:
         #
         #     return Point()
 
-        # to_SCN
-        world_transform = window_.transform  # .dot()
+        width = self.main_window.drawing_area.get_allocation().width
+        height = self.main_window.drawing_area.get_allocation().height
+        if self.da_width != width or self.da_height != height:
+            self.da_width = width
+            self.da_height = height
+            self.main_window.print_log(
+                    'drawing area width:' + str(width))
+            self.main_window.print_log(
+                    'drawing area height:' + str(height) + '\n')
+
+        viewport_ = Viewport(10, 10, width - 10, height - 10, width, height)
+        window_.update()
+
+        cairo_.save()
+        cairo_.move_to(viewport_.x_min, viewport_.y_max)
+        cairo_.line_to(viewport_.x_max, viewport_.y_max)
+        cairo_.line_to(viewport_.x_max, viewport_.y_min)
+        cairo_.line_to(viewport_.x_min, viewport_.y_min)
+        cairo_.line_to(viewport_.x_min, viewport_.y_max)
+        cairo_.stroke()
+        cairo_.restore()
 
         cairo_.set_line_width(1)
         cairo_.set_source_rgb(0, 0, 1)
         for obj in display_file_:
-            obj.draw(world_transform, cairo_)
+            obj.update_scn(window_.transform)
+            obj.draw(viewport_.transform, cairo_)
 
     # ############### NAVIGATION #####################
     # step changed
@@ -181,7 +203,7 @@ class MainWindowHandler:
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-            MainWindow.print_log(
+            self.main_window.print_log(
                 """You must select an object first
                 or switch to Window movementation mode\n"""
             )
@@ -205,7 +227,7 @@ class MainWindowHandler:
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-            MainWindow.print_log(
+            self.main_window.print_log(
                 """You must select an object first
                 or switch to Window movementation mode\n"""
             )
@@ -237,7 +259,7 @@ class MainWindowHandler:
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-            MainWindow.print_log(
+            self.main_window.print_log(
                 """You must select an object first
                 or switch to Window movementation mode\n"""
             )
@@ -261,7 +283,7 @@ class MainWindowHandler:
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-            MainWindow.print_log(
+            self.main_window.print_log(
                 """You must select an object first
                 or switch to Window movementation mode\n"""
             )
@@ -290,7 +312,7 @@ class MainWindowHandler:
             Gtk.Widget.queue_draw(da)
 
         except TypeError:
-            MainWindow.print_log(
+            self.main_window.print_log(
                 """You must select an object first
                 or switch to Window movementation mode\n"""
             )
@@ -314,7 +336,7 @@ class MainWindowHandler:
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw()
         except TypeError:
-            MainWindow.print_log(
+            self.main_window.print_log(
                 self.builder,
                 """You must select an object first
                 or switch to Window movementation mode\n"""
@@ -341,17 +363,13 @@ class MainWindow:
         gtk_window = self.builder.get_object("gtk_window")
         gtk_window.show_all()
 
-        window_.width = self.drawing_area.get_allocated_width()
-        window_.height = self.drawing_area.get_allocated_height()
-        window_.to_SNC()
-
         Gtk.main()
 
     # function to append a text at the end of the buffer from system_log
     def print_log(self, text):
         buffer = self.text_view.get_buffer()
         iterator = buffer.get_iter_at_offset(-1)
-        buffer.insert(iterator, text, -1)
+        buffer.insert(iterator, text + '\n', -1)
 
 # end of class MainWindow
 

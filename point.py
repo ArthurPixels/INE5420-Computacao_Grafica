@@ -2,7 +2,7 @@
 class Point():
     # double x_, y_;
     # construtor
-    def __init__(self, x, y):
+    def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
 

@@ -13,17 +13,17 @@ class Window:
         self.theta = theta
         self.width = width
         self.height = height
-        self.transform = self.to_SNC()
+        self.transform = self.update()
 
     def translate(self, translation):
         self.wc += translation
-        self.transform = self.to_SNC()
+        self.transform = self.update()
 
     def rotate(self, rotation):
         self.theta += rotation
-        self.transform = self.to_SNC()
+        self.transform = self.update()
 
-    def to_SNC(self):
+    def update(self):
         translation = np.array((
             [1, 0, 0],
             [0, 1, 0],
@@ -39,9 +39,9 @@ class Window:
         ), dtype=float)
 
         normalization = np.array((
-            [1, 0, 0],
-            [0, 1, 0],
-            [2/self.width, 2/self.height, 1]
+            [2/self.width, 0, 0],
+            [0, 2/self.height, 0],
+            [0, 0, 1]
         ), dtype=float)
         transform = translation.dot(rotation).dot(normalization)
         return transform
@@ -66,7 +66,6 @@ class Window:
     def moveLeft(self, amount):
         self.win_min_ = Point(self.win_min_.x_ - amount, self.win_min_.y_)
         self.win_max_ = Point(self.win_max_.x_ - amount, self.win_max_.y_)
-
 
     # ZoomIn
     def zoomIn(self, amount):
