@@ -1,19 +1,13 @@
 import gi
 from gi.repository import Gtk
-from object import Object
-from point import Point
-from drawable_line import DrawableLine
-from drawable_point import DrawablePoint
-from polygon import Polygon
+from object import (DrawablePoint, DrawableLine, DrawablePolygon)
 from viewport import Viewport
 from window import Window
-import cairo
-import numpy as np
 gi.require_version('Gtk', '3.0')
 
 
 # ################ GENERAL ATTRIBUTES #################
-window_ = Window(Point(0, 0), 0, 100, 100)
+window_ = Window(Point(0, 0), 0, 200, 200)
 display_file_ = []
 id_cont_ = 0
 
@@ -176,14 +170,6 @@ class MainWindowHandler:
             obj.draw(viewport_.transform, cairo_)
 
     # ############### NAVIGATION #####################
-    # step changed
-    def entry_step_preedit_changed_cb(self, preedit, user_data):
-        pass
-
-    # angle changed
-    def entry_angle_preedit_changed_cb(self, preedit, user_data):
-        pass
-
     # Zoom in
     def bt_zoom_in_clicked_cb(self, button):
         try:

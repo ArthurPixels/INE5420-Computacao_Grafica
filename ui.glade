@@ -198,7 +198,6 @@
                                     <property name="max_length">4</property>
                                     <property name="text" translatable="yes">10</property>
                                     <property name="input_purpose">number</property>
-                                    <signal name="preedit-changed" handler="entry_step_preedit_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -210,9 +209,8 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="max_length">4</property>
-                                    <property name="text" translatable="yes">10</property>
+                                    <property name="text" translatable="yes">45</property>
                                     <property name="input_purpose">number</property>
-                                    <signal name="preedit-changed" handler="entry_angle_preedit_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>

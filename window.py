@@ -1,7 +1,6 @@
 # classe que define uma Window do universo de representacao
-
+from matrixTransform import MatrixTransform
 from point import Point
-import numpy as np
 
 
 class Window:
@@ -24,27 +23,13 @@ class Window:
         self.transform = self.update()
 
     def update(self):
-        translation = np.array((
-            [1, 0, 0],
-            [0, 1, 0],
-            [self.wc.x, self.wc.y, 1]
-        ), dtype=float)
+        mtr = MatrixTransform()
 
-        [cos_theta] = np.cos([self.theta])
-        [sin_theta] = np.sin([self.theta])
-        rotation = np.array((
-            [cos_theta, -sin_theta, 0],
-            [sin_theta, cos_theta, 0],
-            [0, 0, 1]
-        ), dtype=float)
+        mtr.translate(self.wc.x, self.wc.y)
+        mtr.rotate(self.theta)
+        mtr.scale(2/self.width, 2/self.height)
 
-        normalization = np.array((
-            [2/self.width, 0, 0],
-            [0, 2/self.height, 0],
-            [0, 0, 1]
-        ), dtype=float)
-        transform = translation.dot(rotation).dot(normalization)
-        return transform
+        return mtr.tr
 
     # METODOS PARA MOVIMENTACAO DA WINDOW (ver essas funcoes)
     # Move a window para cima

@@ -1,5 +1,5 @@
+from matrixTransform import MatrixTransform
 from point import Point
-import numpy as np
 
 
 # classe que define a viewport do universo de representacao
@@ -20,18 +20,9 @@ class Viewport:
             da_height / 2
         )
 
-        translation = np.array((
-            [1, 0, 0],
-            [0, 1, 0],
-            [self.vc.x, self.vc.y, 1]
-        ), dtype=float)
-
-        normalization = np.array((
-            [(self.x_max - self.x_min)/2, 0, 0],
-            [0, -(self.y_max - self.y_min)/2, 0],
-            [0, 0, 1]
-        ), dtype=float)
-        transform = normalization.dot(translation)
-        return transform
+        mtr = MatrixTransform()
+        mtr.scale((self.x_max - self.x_min)/2, -(self.y_max - self.y_min)/2)
+        mtr.translate(self.vc.x, self.vc.y)
+        return mtr.tr
 
 # end of class Viewport
