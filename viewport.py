@@ -1,5 +1,5 @@
 from matrixTransform import MatrixTransform
-from point import Point
+from object import Point
 
 
 # classe que define a viewport do universo de representacao

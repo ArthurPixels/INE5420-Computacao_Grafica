@@ -15,7 +15,7 @@ class MatrixTransform:
             [0, 1, 0],
             [x, y, 1]
         ), dtype=float)
-        self.tr = self.tr.dot(translation)
+        self.tr = self.tr @ translation
 
     def rotate(self, theta):
         [cos_theta] = np.cos([theta])
@@ -25,7 +25,7 @@ class MatrixTransform:
             [sin_theta, cos_theta, 0],
             [0, 0, 1]
         ), dtype=float)
-        self.tr = self.tr.dot(rotation)
+        self.tr = self.tr @ rotation
 
     def scale(self, width, height):
         sc = np.array((
@@ -33,4 +33,4 @@ class MatrixTransform:
             [0, height, 0],
             [0, 0, 1]
         ), dtype=float)
-        self.tr = self.tr.dot(sc)
+        self.tr = self.tr @ sc
