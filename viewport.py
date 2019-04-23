@@ -1,5 +1,6 @@
 from matrixTransform import MatrixTransform
 from object import Point
+import numpy as np
 
 
 # classe que define a viewport do universo de representacao
@@ -25,4 +26,13 @@ class Viewport:
         mtr.translate(self.vc.x, self.vc.y)
         return mtr.tr
 
+    def viewport_to_scn(self, pt: Point):
+        try:
+            inverse = np.linalg.inv(self.transform)
+        except np.linalg.LinAlgError:
+            print('Error: (Viewport) not invertible')
+        else:
+            [x, y, z] = np.array(
+                    ([pt.x, pt.y, 1]), dtype=float) @ inverse
+            return Point(x, y)
 # end of class Viewport

@@ -8,12 +8,6 @@ from window import Window
 gi.require_version('Gtk', '3.0')
 
 
-# ################ GENERAL ATTRIBUTES #################
-window_ = Window(Point(0, 0), 0, 200, 200)
-display_file_ = []
-id_cont_ = 0
-
-
 # ################ Create object dialog signal handler #################
 class CreateObjectHandler:
     def __init__(self, main_window, dialog_add_object):
@@ -30,9 +24,11 @@ class CreateObjectHandler:
             if name == "":
                 raise ValueError()
 
-            global id_cont_
-            id = id_cont_
-            id_cont_ += 1
+            id = 0
+            if self.main_window.display_file != []:
+                id = max(self.main_window.display_file, key=lambda obj: obj.id)
+
+            self.main_window.id_cont += 1
 
             # new point insertion
             if page == 0:
@@ -68,7 +64,7 @@ class CreateObjectHandler:
 
             # end if
 
-            display_file_.append(obj)
+            self.main_window.display_file.append(obj)
 
             store = self.builder.get_object("liststore_obj")
             store.append([id, obj.name_, obj.type_])
@@ -85,13 +81,14 @@ class CreateObjectHandler:
     # defines the funcionality of the cancel button
     def bt_cancel_create_object_clicked_cb(self, button):
         self.dialog_add_object.destroy()
-
 # end of class CreateObjectHandler
+
 
 class MouseButtons:
     left = 1
     middle = 2
     right = 3
+
 
 # ################ #################
 class MainWindowHandler:
@@ -105,6 +102,8 @@ class MainWindowHandler:
         self.da_height = 0
         self.mouse_start_pos = None
         self.mouse_pressed = False
+        self.window = Window(Point(0, 0), 0, 200, 200)
+        self.viewport = Viewport(0, 0, 100, 100, 100, 100)
 
     def onMainWindowDestroy(self, *args):
         Gtk.main_quit()
@@ -132,9 +131,9 @@ class MainWindowHandler:
                     .get_selection().get_selected()
             id = model.get_value(item, 0)
 
-            for obj in display_file_:
+            for obj in self.display_file:
                 if obj.id_ == id:
-                    display_file_.remove(obj)
+                    self.display_file.remove(obj)
                     break
 
             model.remove(item)
@@ -161,46 +160,47 @@ class MainWindowHandler:
             self.main_window.print_log(
                     'drawing area height:' + str(height) + '\n')
 
-        viewport_ = Viewport(10, 10, width - 10, height - 10, width, height)
-        window_.update()
+        self.viewport = Viewport(
+                10, 10, width - 10, height - 10, width, height)
+        self.window.update()
         cairo_.save()
-        cairo_.move_to(viewport_.x_min, viewport_.y_max)
-        cairo_.line_to(viewport_.x_max, viewport_.y_max)
-        cairo_.line_to(viewport_.x_max, viewport_.y_min)
-        cairo_.line_to(viewport_.x_min, viewport_.y_min)
-        cairo_.line_to(viewport_.x_min, viewport_.y_max)
+        cairo_.move_to(self.viewport.x_min, self.viewport.y_max)
+        cairo_.line_to(self.viewport.x_max, self.viewport.y_max)
+        cairo_.line_to(self.viewport.x_max, self.viewport.y_min)
+        cairo_.line_to(self.viewport.x_min, self.viewport.y_min)
+        cairo_.line_to(self.viewport.x_min, self.viewport.y_max)
         cairo_.stroke()
         cairo_.restore()
 
         cairo_.set_line_width(1)
         cairo_.set_source_rgb(0, 0, 1)
-        for obj in display_file_:
-            obj.update_scn(window_.transform)
-            obj.draw(viewport_.transform, cairo_)
+        for obj in self.main_window.display_file:
+            obj.update_scn(self.window.transform)
+            obj.draw(self.viewport.transform, cairo_)
 
     # ############### NAVIGATION #####################
     # drag
     def on_mouse_press(self, widget, event):
         if event.button == MouseButtons.left:
-            # self.mouse_start_pos =
+            self.mouse_start_pos = Point(-event.x, event.y)
             self.mouse_pressed = True
 
-    def on_motion(self, widget, event):
+    def on_mouse_move(self, widget, event):
         # def viewport_to_window(v: Vec2):
 
-        # register x, y
         # translate window
         if self.mouse_pressed:
-            # current_pos = Point(-event.x, event.y)
-            # delta = viewport_to_window(current - self.mouse_start_pos)
-            #
-            # m = rotation_matrix(window_.theta)
+            current_pos = Point(-event.x, event.y)
+            [delta_x, delta_y, delta_z] = self.viewport.scn_to_window(
+                    current_pos.x - self.mouse_start_pos.x)
+
+            # m = rotation_matrix(self.window.theta)
             #
             # delta = delta @ m
             #
-            # self.mouse_start_pos = current_pos
-            # self.world_window.min += delta
-            # self.world_window.max += delta
+            self.mouse_start_pos = current_pos
+            self.window.translate(delta_x, delta_y)
+            # self.world_window.max += delta_y
             widget.queue_draw()
 
     def on_mouse_release(self, widget, event):
@@ -213,7 +213,7 @@ class MainWindowHandler:
             amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.zoom(-amount)
+                self.window.zoom(-amount)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -237,7 +237,7 @@ class MainWindowHandler:
             amount = 10
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.zoom(amount)
+                self.window.zoom(amount)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -259,7 +259,7 @@ class MainWindowHandler:
             angle = float(self.entry_angle.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.rotate(angle)
+                self.window.rotate(angle)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -281,7 +281,7 @@ class MainWindowHandler:
             angle = float(self.entry_angle.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.rotate(angle)
+                self.window.rotate(angle)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -303,7 +303,7 @@ class MainWindowHandler:
             amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.translate(-amount, 0)
+                self.window.translate(-amount, 0)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -325,7 +325,7 @@ class MainWindowHandler:
             amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.translate(0, -amount)
+                self.window.translate(0, -amount)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -348,7 +348,7 @@ class MainWindowHandler:
             amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.translate(amount, 0)
+                self.window.translate(amount, 0)
 
             # objects radio option selected
             else:
@@ -375,7 +375,7 @@ class MainWindowHandler:
             amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.translate(0, amount)
+                self.window.translate(0, amount)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -400,6 +400,8 @@ class MainWindow:
         self.ui_obj_list = None
         self.text_view = None
         self.drawing_area = None
+        self.display_file = []
+        self.id_cont = 0
 
     def run(self):
         self.builder = Gtk.Builder()

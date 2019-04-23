@@ -417,6 +417,7 @@
                 <signal name="button-press-event" handler="on_mouse_press" swapped="no"/>
                 <signal name="button-release-event" handler="on_mouse_release" swapped="no"/>
                 <signal name="draw" handler="on_draw" swapped="no"/>
+                <signal name="motion-notify-event" handler="on_mouse_move" swapped="no"/>
               </object>
               <packing>
                 <property name="resize">True</property>

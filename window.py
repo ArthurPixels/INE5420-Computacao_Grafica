@@ -15,16 +15,22 @@ class Window:
         self.height = height
         self.transform = self.update()
 
-    def translate(self, x, y):
-        self.transform = self.update()
+    def scn_to_world(self, pt: Point):
         try:
             inverse = np.linalg.inv(self.transform)
         except np.linalg.LinAlgError:
-            print('Error: (MatrixTransform) not invertible')
+            print('Error: (Window) not invertible')
         else:
-            [self.wc.x, self.wc.y, z] = np.array(
-                    ([x/10, y/10, 1]), dtype=float).dot(inverse)
-            self.transform = self.update()
+            [x, y, z] = np.array(
+                    ([pt.x, pt.y, 1]), dtype=float) @ inverse
+            return Point(x, y)
+
+    def translate(self, pt: Point):
+        self.transform = self.update()
+        delta = self.scn_to_world(pt.x/10, pt.y/10)
+        self.wc.x += delta.x
+        self.wc.y += delta.y
+        self.transform = self.update()
 
     def rotate(self, rotation):
         self.theta += rotation
