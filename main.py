@@ -95,7 +95,8 @@ class MainWindowHandler:
     def __init__(self, main_window):
         self.main_window = main_window
         self.builder = main_window.builder
-        self.store = self.builder.get_object("liststore_obj")
+        self.store = self.builder.get_object('liststore_obj')
+        self.scrolled_window = self.builder.get_object('scrolled_window_log')
         self.entry_step = self.builder.get_object('entry_step')
         self.entry_angle = self.builder.get_object('entry_angle')
         self.da_width = 0
@@ -143,6 +144,10 @@ class MainWindowHandler:
         except TypeError:
             self.main_window.print_log("No object selected to be removed\n")
 
+    def scroll_log(self, widget, event, data=None):
+        adj = self.scrolled_window.get_vadjustment()
+        adj.set_value(adj.get_upper() - adj.get_page_size())
+
     # draws the objects in the world of representation
     def on_draw(self, widget, cairo_):
         # def viewport_transform(point: Point):
@@ -162,7 +167,7 @@ class MainWindowHandler:
 
         self.viewport = Viewport(
                 10, 10, width - 10, height - 10, width, height)
-        self.window.update()
+
         cairo_.save()
         cairo_.move_to(self.viewport.x_min, self.viewport.y_max)
         cairo_.line_to(self.viewport.x_max, self.viewport.y_max)
@@ -181,29 +186,33 @@ class MainWindowHandler:
     # ############### NAVIGATION #####################
     # drag
     def on_mouse_press(self, widget, event):
+        self.main_window.print_log("MOUSE PRESS")
         if event.button == MouseButtons.left:
-            self.mouse_start_pos = Point(-event.x, event.y)
+            self.mouse_start_pos = Point(event.x, event.y)
             self.mouse_pressed = True
 
     def on_mouse_move(self, widget, event):
-        # def viewport_to_window(v: Vec2):
-
         # translate window
         if self.mouse_pressed:
-            current_pos = Point(-event.x, event.y)
-            [delta_x, delta_y, delta_z] = self.viewport.scn_to_window(
-                    current_pos.x - self.mouse_start_pos.x)
+            current_pos = Point(event.x, event.y)
+            self.main_window.print_log(f'event-x:{event.x} eventy:{event.y}')
+            delta_viewport = Point(
+                    current_pos.x - self.mouse_start_pos.x,
+                    current_pos.y - self.mouse_start_pos.y
+                )
+            self.main_window.print_log(
+                    f'd_vp_x:{delta_viewport.x} d_vp_y:{delta_viewport.y}')
 
-            # m = rotation_matrix(self.window.theta)
-            #
-            # delta = delta @ m
-            #
+            delta_scn = self.viewport.viewport_to_scn(delta_viewport)
+
+            self.main_window.print_log(
+                    f'd_scn_x:{delta_scn.x} d_scn_y:{delta_scn.y}')
+            self.window.translate(delta_scn)
             self.mouse_start_pos = current_pos
-            self.window.translate(delta_x, delta_y)
-            # self.world_window.max += delta_y
             widget.queue_draw()
 
     def on_mouse_release(self, widget, event):
+        self.main_window.print_log("MOUSE RELEASE")
         if event.button == MouseButtons.left:
             self.mouse_pressed = False
 

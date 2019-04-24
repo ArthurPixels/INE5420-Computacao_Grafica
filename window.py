@@ -16,18 +16,20 @@ class Window:
         self.transform = self.update()
 
     def scn_to_world(self, pt: Point):
+        self.transform = self.update()
         try:
             inverse = np.linalg.inv(self.transform)
         except np.linalg.LinAlgError:
             print('Error: (Window) not invertible')
         else:
-            [x, y, z] = np.array(
-                    ([pt.x, pt.y, 1]), dtype=float) @ inverse
+            [x, y, z] = inverse @ np.array(
+                    ([pt.x, pt.y, 1]), dtype=float)
+            print(f'd_world_x:{x} d_world_y:{y}')
+            print(f'wc_x:{self.wc.x} wc_y:{self.wc.y}')
             return Point(x, y)
 
     def translate(self, pt: Point):
-        self.transform = self.update()
-        delta = self.scn_to_world(pt.x/10, pt.y/10)
+        delta = self.scn_to_world(pt)
         self.wc.x += delta.x
         self.wc.y += delta.y
         self.transform = self.update()
@@ -36,18 +38,15 @@ class Window:
         self.theta += rotation
         self.transform = self.update()
 
+    def zoom(self, amount):
+        self.width += amount
+        self.height += amount
+        self.transform = self.update()
+
     def update(self):
         mtr = MatrixTransform()
         mtr.translate(self.wc.x, self.wc.y)
         mtr.rotate(self.theta)
         mtr.scale(2/self.width, 2/self.height)
         return mtr.tr
-
-    # Zoom
-    def zoom(self, amount):
-        self.width += amount
-        self.height += amount
-        self.transform = self.update()
-
-
 # end of class Window

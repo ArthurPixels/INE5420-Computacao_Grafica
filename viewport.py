@@ -32,7 +32,7 @@ class Viewport:
         except np.linalg.LinAlgError:
             print('Error: (Viewport) not invertible')
         else:
-            [x, y, z] = np.array(
-                    ([pt.x, pt.y, 1]), dtype=float) @ inverse
+            [x, y, z] = inverse @ np.array(
+                    ([pt.x, pt.y, 1]), dtype=float)
             return Point(x, y)
 # end of class Viewport
