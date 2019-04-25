@@ -1,6 +1,6 @@
 import gi
 import sys
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 from object import (
     Point, Polygon, DrawablePoint, DrawableLine)
 from viewport import Viewport
@@ -169,6 +169,7 @@ class MainWindowHandler:
                 10, 10, width - 10, height - 10, width, height)
 
         cairo_.save()
+        cairo_.set_source_rgb(0, 0, 0)
         cairo_.move_to(self.viewport.x_min, self.viewport.y_max)
         cairo_.line_to(self.viewport.x_max, self.viewport.y_max)
         cairo_.line_to(self.viewport.x_max, self.viewport.y_min)
@@ -207,7 +208,7 @@ class MainWindowHandler:
 
             self.main_window.print_log(
                     f'd_scn_x:{delta_scn.x} d_scn_y:{delta_scn.y}')
-            self.window.translate(delta_scn)
+            self.window.translate(self.window.scn_to_world(delta_scn))
             self.mouse_start_pos = current_pos
             widget.queue_draw()
 
@@ -215,6 +216,26 @@ class MainWindowHandler:
         self.main_window.print_log("MOUSE RELEASE")
         if event.button == MouseButtons.left:
             self.mouse_pressed = False
+
+    def on_mouse_scroll(self, widget, event):
+        # Handles zoom in / zoom out on Ctrl+mouse wheel
+        accel_mask = Gtk.accelerator_get_default_mod_mask()
+        if event.state & accel_mask == Gdk.ModifierType.CONTROL_MASK:
+            amount = float(self.entry_step.get_text())
+            direction = event.get_scroll_deltas()[2]
+            if direction > 0:  # scrolling down -> zoom out
+                self.window.zoom(-amount)
+            else:
+                self.window.zoom(amount)
+        else:
+            angle = float(self.entry_angle.get_text())
+            direction = event.get_scroll_deltas()[2]
+            if direction > 0:  # scrolling down -> zoom out
+                self.window.rotate(angle)
+            else:
+                self.window.rotate(-angle)
+        widget.queue_draw()
+
 
     # Zoom in
     def bt_zoom_in_clicked_cb(self, button):

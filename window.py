@@ -24,14 +24,13 @@ class Window:
         else:
             [x, y, z] = inverse @ np.array(
                     ([pt.x, pt.y, 1]), dtype=float)
-            print(f'd_world_x:{x} d_world_y:{y}')
-            print(f'wc_x:{self.wc.x} wc_y:{self.wc.y}')
+            # print(f'd_world_x:{x} d_world_y:{y}')
+            # print(f'wc_x:{self.wc.x} wc_y:{self.wc.y}')
             return Point(x, y)
 
     def translate(self, pt: Point):
-        delta = self.scn_to_world(pt)
-        self.wc.x += delta.x
-        self.wc.y += delta.y
+        self.wc.x += pt.x
+        self.wc.y += pt.y
         self.transform = self.update()
 
     def rotate(self, rotation):
