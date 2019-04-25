@@ -1,21 +1,11 @@
 import gi
+import sys
 from gi.repository import Gtk
-from object import Object
-from point import Point
-from drawable_line import DrawableLine
-from drawable_point import DrawablePoint
-from polygon import Polygon
+from object import (
+    Point, Polygon, DrawablePoint, DrawableLine)
 from viewport import Viewport
 from window import Window
-import cairo
-import numpy as np
 gi.require_version('Gtk', '3.0')
-
-
-# ################ GENERAL ATTRIBUTES #################
-window_ = Window(Point(0, 0), 0, 100, 100)
-display_file_ = []
-id_cont_ = 0
 
 
 # ################ Create object dialog signal handler #################
@@ -34,9 +24,11 @@ class CreateObjectHandler:
             if name == "":
                 raise ValueError()
 
-            global id_cont_
-            id = id_cont_
-            id_cont_ += 1
+            id = 0
+            if self.main_window.display_file != []:
+                id = max(self.main_window.display_file, key=lambda obj: obj.id)
+
+            self.main_window.id_cont += 1
 
             # new point insertion
             if page == 0:
@@ -72,7 +64,7 @@ class CreateObjectHandler:
 
             # end if
 
-            display_file_.append(obj)
+            self.main_window.display_file.append(obj)
 
             store = self.builder.get_object("liststore_obj")
             store.append([id, obj.name_, obj.type_])
@@ -89,8 +81,13 @@ class CreateObjectHandler:
     # defines the funcionality of the cancel button
     def bt_cancel_create_object_clicked_cb(self, button):
         self.dialog_add_object.destroy()
-
 # end of class CreateObjectHandler
+
+
+class MouseButtons:
+    left = 1
+    middle = 2
+    right = 3
 
 
 # ################ #################
@@ -98,9 +95,16 @@ class MainWindowHandler:
     def __init__(self, main_window):
         self.main_window = main_window
         self.builder = main_window.builder
-        self.store = self.builder.get_object("liststore_obj")
+        self.store = self.builder.get_object('liststore_obj')
+        self.scrolled_window = self.builder.get_object('scrolled_window_log')
+        self.entry_step = self.builder.get_object('entry_step')
+        self.entry_angle = self.builder.get_object('entry_angle')
         self.da_width = 0
         self.da_height = 0
+        self.mouse_start_pos = None
+        self.mouse_pressed = False
+        self.window = Window(Point(0, 0), 0, 200, 200)
+        self.viewport = Viewport(0, 0, 100, 100, 100, 100)
 
     def onMainWindowDestroy(self, *args):
         Gtk.main_quit()
@@ -128,9 +132,9 @@ class MainWindowHandler:
                     .get_selection().get_selected()
             id = model.get_value(item, 0)
 
-            for obj in display_file_:
+            for obj in self.display_file:
                 if obj.id_ == id:
-                    display_file_.remove(obj)
+                    self.display_file.remove(obj)
                     break
 
             model.remove(item)
@@ -139,6 +143,10 @@ class MainWindowHandler:
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
             self.main_window.print_log("No object selected to be removed\n")
+
+    def scroll_log(self, widget, event, data=None):
+        adj = self.scrolled_window.get_vadjustment()
+        adj.set_value(adj.get_upper() - adj.get_page_size())
 
     # draws the objects in the world of representation
     def on_draw(self, widget, cairo_):
@@ -157,42 +165,64 @@ class MainWindowHandler:
             self.main_window.print_log(
                     'drawing area height:' + str(height) + '\n')
 
-        viewport_ = Viewport(10, 10, width - 10, height - 10, width, height)
-        window_.update()
+        self.viewport = Viewport(
+                10, 10, width - 10, height - 10, width, height)
 
         cairo_.save()
-        cairo_.move_to(viewport_.x_min, viewport_.y_max)
-        cairo_.line_to(viewport_.x_max, viewport_.y_max)
-        cairo_.line_to(viewport_.x_max, viewport_.y_min)
-        cairo_.line_to(viewport_.x_min, viewport_.y_min)
-        cairo_.line_to(viewport_.x_min, viewport_.y_max)
+        cairo_.move_to(self.viewport.x_min, self.viewport.y_max)
+        cairo_.line_to(self.viewport.x_max, self.viewport.y_max)
+        cairo_.line_to(self.viewport.x_max, self.viewport.y_min)
+        cairo_.line_to(self.viewport.x_min, self.viewport.y_min)
+        cairo_.line_to(self.viewport.x_min, self.viewport.y_max)
         cairo_.stroke()
         cairo_.restore()
 
         cairo_.set_line_width(1)
         cairo_.set_source_rgb(0, 0, 1)
-        for obj in display_file_:
-            obj.update_scn(window_.transform)
-            obj.draw(viewport_.transform, cairo_)
+        for obj in self.main_window.display_file:
+            obj.update_scn(self.window.transform)
+            obj.draw(self.viewport.transform, cairo_)
 
     # ############### NAVIGATION #####################
-    # step changed
-    def entry_step_preedit_changed_cb(self, preedit, user_data):
-        pass
+    # drag
+    def on_mouse_press(self, widget, event):
+        self.main_window.print_log("MOUSE PRESS")
+        if event.button == MouseButtons.left:
+            self.mouse_start_pos = Point(event.x, event.y)
+            self.mouse_pressed = True
 
-    # angle changed
-    def entry_angle_preedit_changed_cb(self, preedit, user_data):
-        pass
+    def on_mouse_move(self, widget, event):
+        # translate window
+        if self.mouse_pressed:
+            current_pos = Point(event.x, event.y)
+            self.main_window.print_log(f'event-x:{event.x} eventy:{event.y}')
+            delta_viewport = Point(
+                    current_pos.x - self.mouse_start_pos.x,
+                    current_pos.y - self.mouse_start_pos.y
+                )
+            self.main_window.print_log(
+                    f'd_vp_x:{delta_viewport.x} d_vp_y:{delta_viewport.y}')
+
+            delta_scn = self.viewport.viewport_to_scn(delta_viewport)
+
+            self.main_window.print_log(
+                    f'd_scn_x:{delta_scn.x} d_scn_y:{delta_scn.y}')
+            self.window.translate(delta_scn)
+            self.mouse_start_pos = current_pos
+            widget.queue_draw()
+
+    def on_mouse_release(self, widget, event):
+        self.main_window.print_log("MOUSE RELEASE")
+        if event.button == MouseButtons.left:
+            self.mouse_pressed = False
 
     # Zoom in
     def bt_zoom_in_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX
-            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
-            amount = 10
+            amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.zoomIn(amount)
+                self.window.zoom(-amount)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -216,7 +246,7 @@ class MainWindowHandler:
             amount = 10
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.zoomOut(amount)
+                self.window.zoom(amount)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -234,21 +264,55 @@ class MainWindowHandler:
 
     # Rotate left
     def bt_rotate_left_clockwise_clicked_cb(self, button):
-        pass
+        try:
+            angle = float(self.entry_angle.get_text())
+
+            if self.builder.get_object("radio_option_window").get_active():
+                self.window.rotate(angle)
+
+            else:
+                model, item = self.builder.get_object("obj_list")\
+                        .get_selection().get_selected()
+                id = model.get_value(item, 0)
+                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+
+            # re-draw objects on drawing_area
+            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+        except TypeError:
+            self.main_window.print_log(
+                """You must select an object first
+                or switch to Window movementation mode\n"""
+            )
 
     # Rotate right
     def bt_rotate_rigth_clockwise_clicked_cb(self, button):
-        pass
+        try:
+            angle = float(self.entry_angle.get_text())
+
+            if self.builder.get_object("radio_option_window").get_active():
+                self.window.rotate(angle)
+
+            else:
+                model, item = self.builder.get_object("obj_list")\
+                        .get_selection().get_selected()
+                id = model.get_value(item, 0)
+                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+
+            # re-draw objects on drawing_area
+            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+        except TypeError:
+            self.main_window.print_log(
+                """You must select an object first
+                or switch to Window movementation mode\n"""
+            )
 
     # move left
     def bt_move_left_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX
-            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
-            amount = 10
+            amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.moveLeft(amount)
+                self.window.translate(-amount, 0)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -267,12 +331,10 @@ class MainWindowHandler:
     # move down
     def bt_move_down_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX
-            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
-            amount = 10
+            amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.moveDown(amount)
+                self.window.translate(0, -amount)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -283,6 +345,7 @@ class MainWindowHandler:
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
+            sys.exec_info()
             self.main_window.print_log(
                 """You must select an object first
                 or switch to Window movementation mode\n"""
@@ -291,14 +354,10 @@ class MainWindowHandler:
     # move right
     def bt_move_right_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX
-            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
-            amount = 10
+            amount = float(self.entry_step.get_text())
 
-            # identify who is the radio button selected
-            # window radio option selected
             if self.builder.get_object("radio_option_window").get_active():
-                window_.moveRight(amount)
+                self.window.translate(amount, 0)
 
             # objects radio option selected
             else:
@@ -322,10 +381,10 @@ class MainWindowHandler:
         try:
             # PEGAR VALOR DE ALGUM ENTRY BOX
             # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
-            amount = 10
+            amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                window_.moveUp(amount)
+                self.window.translate(0, amount)
 
             else:
                 model, item = self.builder.get_object("obj_list")\
@@ -337,7 +396,6 @@ class MainWindowHandler:
             Gtk.Widget.queue_draw()
         except TypeError:
             self.main_window.print_log(
-                self.builder,
                 """You must select an object first
                 or switch to Window movementation mode\n"""
             )
@@ -351,6 +409,8 @@ class MainWindow:
         self.ui_obj_list = None
         self.text_view = None
         self.drawing_area = None
+        self.display_file = []
+        self.id_cont = 0
 
     def run(self):
         self.builder = Gtk.Builder()

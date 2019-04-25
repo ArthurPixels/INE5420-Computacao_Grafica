@@ -198,7 +198,6 @@
                                     <property name="max_length">4</property>
                                     <property name="text" translatable="yes">10</property>
                                     <property name="input_purpose">number</property>
-                                    <signal name="preedit-changed" handler="entry_step_preedit_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -210,9 +209,8 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="max_length">4</property>
-                                    <property name="text" translatable="yes">10</property>
+                                    <property name="text" translatable="yes">45</property>
                                     <property name="input_purpose">number</property>
-                                    <signal name="preedit-changed" handler="entry_angle_preedit_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -416,7 +414,11 @@
               <object class="GtkDrawingArea" id="gtk_drawing_area">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="events">GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_SCROLL_MASK</property>
+                <signal name="button-press-event" handler="on_mouse_press" swapped="no"/>
+                <signal name="button-release-event" handler="on_mouse_release" swapped="no"/>
                 <signal name="draw" handler="on_draw" swapped="no"/>
+                <signal name="motion-notify-event" handler="on_mouse_move" swapped="no"/>
               </object>
               <packing>
                 <property name="resize">True</property>
@@ -424,19 +426,27 @@
               </packing>
             </child>
             <child>
-              <object class="GtkTextView" id="system_log">
+              <object class="GtkScrolledWindow" id="scrolled_window_log">
                 <property name="height_request">150</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="valign">end</property>
-                <property name="margin_left">5</property>
-                <property name="margin_right">5</property>
-                <property name="margin_top">5</property>
-                <property name="margin_bottom">5</property>
-                <property name="vexpand">False</property>
-                <property name="editable">False</property>
-                <property name="cursor_visible">False</property>
-                <property name="accepts_tab">False</property>
+                <property name="shadow_type">in</property>
+                <child>
+                  <object class="GtkTextView" id="system_log">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="margin_left">5</property>
+                    <property name="margin_right">5</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
+                    <property name="vexpand">False</property>
+                    <property name="editable">False</property>
+                    <property name="cursor_visible">False</property>
+                    <property name="accepts_tab">False</property>
+                    <property name="monospace">True</property>
+                    <signal name="size-allocate" handler="scroll_log" swapped="no"/>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="resize">False</property>

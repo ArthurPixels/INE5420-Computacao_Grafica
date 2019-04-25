@@ -1,6 +1,6 @@
 # classe que define uma Window do universo de representacao
-
-from point import Point
+from matrixTransform import MatrixTransform
+from object import Point
 import numpy as np
 
 
@@ -15,67 +15,38 @@ class Window:
         self.height = height
         self.transform = self.update()
 
-    def translate(self, translation):
-        self.wc += translation
+    def scn_to_world(self, pt: Point):
+        self.transform = self.update()
+        try:
+            inverse = np.linalg.inv(self.transform)
+        except np.linalg.LinAlgError:
+            print('Error: (Window) not invertible')
+        else:
+            [x, y, z] = inverse @ np.array(
+                    ([pt.x, pt.y, 1]), dtype=float)
+            print(f'd_world_x:{x} d_world_y:{y}')
+            print(f'wc_x:{self.wc.x} wc_y:{self.wc.y}')
+            return Point(x, y)
+
+    def translate(self, pt: Point):
+        delta = self.scn_to_world(pt)
+        self.wc.x += delta.x
+        self.wc.y += delta.y
         self.transform = self.update()
 
     def rotate(self, rotation):
         self.theta += rotation
         self.transform = self.update()
 
+    def zoom(self, amount):
+        self.width += amount
+        self.height += amount
+        self.transform = self.update()
+
     def update(self):
-        translation = np.array((
-            [1, 0, 0],
-            [0, 1, 0],
-            [self.wc.x, self.wc.y, 1]
-        ), dtype=float)
-
-        [cos_theta] = np.cos([self.theta])
-        [sin_theta] = np.sin([self.theta])
-        rotation = np.array((
-            [cos_theta, -sin_theta, 0],
-            [sin_theta, cos_theta, 0],
-            [0, 0, 1]
-        ), dtype=float)
-
-        normalization = np.array((
-            [2/self.width, 0, 0],
-            [0, 2/self.height, 0],
-            [0, 0, 1]
-        ), dtype=float)
-        transform = translation.dot(rotation).dot(normalization)
-        return transform
-
-    # METODOS PARA MOVIMENTACAO DA WINDOW (ver essas funcoes)
-    # Move a window para cima
-    def moveUp(self, amount):
-        self.win_min_ = Point(self.win_min_.x_, self.win_min_.y_ + amount)
-        self.win_max_ = Point(self.win_max_.x_, self.win_max_.y_ + amount)
-
-    # Move a window para a direita
-    def moveRight(self, amount):
-        self.win_min_ = Point(self.win_min_.x_ + amount, self.win_min_.y_)
-        self.win_max_ = Point(self.win_max_.x_ + amount, self.win_max_.y_)
-
-    # Move a window para baixo
-    def moveDown(self, amount):
-        self.win_min_ = Point(self.win_min_.x_, self.win_min_.y_ - amount)
-        self.win_max_ = Point(self.win_max_.x_, self.win_max_.y_ - amount)
-
-    # Move a window para a esquerda
-    def moveLeft(self, amount):
-        self.win_min_ = Point(self.win_min_.x_ - amount, self.win_min_.y_)
-        self.win_max_ = Point(self.win_max_.x_ - amount, self.win_max_.y_)
-
-    # ZoomIn
-    def zoomIn(self, amount):
-        self.win_min_ = Point(self.win_min_.x_ + amount, self.win_min_.y_ + amount)
-        self.win_max_ = Point(self.win_max_.x_ - amount, self.win_max_.y_ - amount)
-
-    # ZoomOut
-    def zoomOut(self, amount):
-        self.win_min_ = Point(self.win_min_.x_ - amount, self.win_min_.y_ - amount)
-        self.win_max_ = Point(self.win_max_.x_ + amount, self.win_max_.y_ + amount)
-
-
+        mtr = MatrixTransform()
+        mtr.translate(self.wc.x, self.wc.y)
+        mtr.rotate(self.theta)
+        mtr.scale(2/self.width, 2/self.height)
+        return mtr.tr
 # end of class Window

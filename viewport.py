@@ -1,4 +1,5 @@
-from point import Point
+from matrixTransform import MatrixTransform
+from object import Point
 import numpy as np
 
 
@@ -20,18 +21,18 @@ class Viewport:
             da_height / 2
         )
 
-        translation = np.array((
-            [1, 0, 0],
-            [0, 1, 0],
-            [self.vc.x, self.vc.y, 1]
-        ), dtype=float)
+        mtr = MatrixTransform()
+        mtr.scale((self.x_max - self.x_min)/2, -(self.y_max - self.y_min)/2)
+        mtr.translate(self.vc.x, self.vc.y)
+        return mtr.tr
 
-        normalization = np.array((
-            [(self.x_max - self.x_min)/2, 0, 0],
-            [0, -(self.y_max - self.y_min)/2, 0],
-            [0, 0, 1]
-        ), dtype=float)
-        transform = normalization.dot(translation)
-        return transform
-
+    def viewport_to_scn(self, pt: Point):
+        try:
+            inverse = np.linalg.inv(self.transform)
+        except np.linalg.LinAlgError:
+            print('Error: (Viewport) not invertible')
+        else:
+            [x, y, z] = inverse @ np.array(
+                    ([pt.x, pt.y, 1]), dtype=float)
+            return Point(x, y)
 # end of class Viewport
