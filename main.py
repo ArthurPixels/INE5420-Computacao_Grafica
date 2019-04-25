@@ -220,17 +220,16 @@ class MainWindowHandler:
     def on_mouse_scroll(self, widget, event):
         # Handles zoom in / zoom out on Ctrl+mouse wheel
         accel_mask = Gtk.accelerator_get_default_mod_mask()
+        direction = event.direction
         if event.state & accel_mask == Gdk.ModifierType.CONTROL_MASK:
             amount = float(self.entry_step.get_text())
-            direction = event.get_scroll_deltas()[2]
-            if direction > 0:  # scrolling down -> zoom out
+            if direction == Gdk.ScrollDirection.UP:
                 self.window.zoom(-amount)
             else:
                 self.window.zoom(amount)
         else:
             angle = float(self.entry_angle.get_text())
-            direction = event.get_scroll_deltas()[2]
-            if direction > 0:  # scrolling down -> zoom out
+            if direction == Gdk.ScrollDirection.UP:
                 self.window.rotate(angle)
             else:
                 self.window.rotate(-angle)
