@@ -2,7 +2,7 @@ import gi
 import sys
 from gi.repository import Gtk, Gdk
 from object import (
-    Point, Polygon, DrawablePoint, DrawableLine)
+    Point2D, Polygon, DrawablePoint2D, DrawableLine)
 from viewport import Viewport
 from window import Window
 gi.require_version('Gtk', '3.0')
@@ -24,18 +24,17 @@ class CreateObjectHandler:
             if name == "":
                 raise ValueError()
 
-            id = 0
-            if self.main_window.display_file != []:
-                id = max(self.main_window.display_file, key=lambda obj: obj.id)
-
-            self.main_window.id_cont += 1
+            new_id = 0
+            if self.main_window.display_file:
+                new_id = max(self.main_window.display_file)
+                new_id += 1
 
             # new point insertion
             if page == 0:
                 x = float(self.builder.get_object("entry_point_x").get_text())
                 y = float(self.builder.get_object("entry_point_y").get_text())
 
-                obj = DrawablePoint(id, name, x, y)
+                obj = DrawablePoint2D(new_id, name, x, y)
 
             # new line insertion
             elif page == 1:
@@ -44,7 +43,7 @@ class CreateObjectHandler:
                 x2 = float(self.builder.get_object("entry_line_x2").get_text())
                 y2 = float(self.builder.get_object("entry_line_y2").get_text())
 
-                obj = DrawableLine(id, name, Point(x1, y1), Point(x2, y2))
+                obj = DrawableLine(new_id, name, Point2D(x1, y1), Point2D(x2, y2))
 
             # new wireframe insertion
             elif page == 2:
@@ -58,16 +57,16 @@ class CreateObjectHandler:
                 pontos = []
                 for i in range(len(entrada)):
                     x, y = entrada[i].split()
-                    pontos.append(Point(float(x), float(y)))
+                    pontos.append(Point2D(float(x), float(y)))
 
-                obj = Polygon(id, name, pontos)
+                obj = Polygon(new_id, name, pontos)
 
             # end if
 
-            self.main_window.display_file.append(obj)
+            self.main_window.display_file[obj.id] = obj
 
             store = self.builder.get_object("liststore_obj")
-            store.append([id, obj.name_, obj.type_])
+            store.append([new_id, obj.name, obj.type])
 
             da = self.builder.get_object("gtk_drawing_area")
             da.draw(da.get_window().cairo_create())
@@ -103,7 +102,7 @@ class MainWindowHandler:
         self.da_height = 0
         self.mouse_start_pos = None
         self.mouse_pressed = False
-        self.window = Window(Point(0, 0), 0, 200, 200)
+        self.window = Window(Point2D(0, 0), 0, 200, 200)
         self.viewport = Viewport(0, 0, 100, 100, 100, 100)
 
     def onMainWindowDestroy(self, *args):
@@ -132,10 +131,7 @@ class MainWindowHandler:
                     .get_selection().get_selected()
             id = model.get_value(item, 0)
 
-            for obj in self.display_file:
-                if obj.id_ == id:
-                    self.display_file.remove(obj)
-                    break
+            self.display_file.pop(id)
 
             model.remove(item)
 
@@ -180,40 +176,40 @@ class MainWindowHandler:
 
         cairo_.set_line_width(1)
         cairo_.set_source_rgb(0, 0, 1)
-        for obj in self.main_window.display_file:
+        for obj in self.main_window.display_file.values():
             obj.update_scn(self.window.transform)
             obj.draw(self.viewport.transform, cairo_)
 
     # ############### NAVIGATION #####################
     # drag
     def on_mouse_press(self, widget, event):
-        self.main_window.print_log("MOUSE PRESS")
+        # self.main_window.print_log("MOUSE PRESS")
         if event.button == MouseButtons.left:
-            self.mouse_start_pos = Point(event.x, event.y)
+            self.mouse_start_pos = Point2D(event.x, event.y)
             self.mouse_pressed = True
 
     def on_mouse_move(self, widget, event):
         # translate window
         if self.mouse_pressed:
-            current_pos = Point(event.x, event.y)
-            self.main_window.print_log(f'event-x:{event.x} eventy:{event.y}')
-            delta_viewport = Point(
+            current_pos = Point2D(event.x, event.y)
+            # self.main_window.print_log(f'event-x:{event.x} eventy:{event.y}')
+            delta_viewport = Point2D(
                     current_pos.x - self.mouse_start_pos.x,
                     current_pos.y - self.mouse_start_pos.y
                 )
-            self.main_window.print_log(
-                    f'd_vp_x:{delta_viewport.x} d_vp_y:{delta_viewport.y}')
+            # self.main_window.print_log(
+            #         f'd_vp_x:{delta_viewport.x} d_vp_y:{delta_viewport.y}')
 
             delta_scn = self.viewport.viewport_to_scn(delta_viewport)
 
-            self.main_window.print_log(
-                    f'd_scn_x:{delta_scn.x} d_scn_y:{delta_scn.y}')
+            # self.main_window.print_log(
+            #         f'd_scn_x:{delta_scn.x} d_scn_y:{delta_scn.y}')
             self.window.translate(self.window.scn_to_world(delta_scn))
             self.mouse_start_pos = current_pos
             widget.queue_draw()
 
     def on_mouse_release(self, widget, event):
-        self.main_window.print_log("MOUSE RELEASE")
+        # self.main_window.print_log("MOUSE RELEASE")
         if event.button == MouseButtons.left:
             self.mouse_pressed = False
 
@@ -235,7 +231,6 @@ class MainWindowHandler:
                 self.window.rotate(-angle)
         widget.queue_draw()
 
-
     # Zoom in
     def bt_zoom_in_clicked_cb(self, button):
         try:
@@ -248,7 +243,7 @@ class MainWindowHandler:
                 model, item = self.builder.get_object("obj_list")\
                         .get_selection().get_selected()
                 id = model.get_value(item, 0)
-                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+                # TODO
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
@@ -272,7 +267,7 @@ class MainWindowHandler:
                 model, item = self.builder.get_object("obj_list")\
                         .get_selection().get_selected()
                 id = model.get_value(item, 0)
-                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+                # TODO
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
@@ -294,7 +289,7 @@ class MainWindowHandler:
                 model, item = self.builder.get_object("obj_list")\
                         .get_selection().get_selected()
                 id = model.get_value(item, 0)
-                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+                # TODO
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
@@ -360,7 +355,7 @@ class MainWindowHandler:
                 model, item = self.builder.get_object("obj_list")\
                         .get_selection().get_selected()
                 id = model.get_value(item, 0)
-                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+                # TODO
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
@@ -399,18 +394,17 @@ class MainWindowHandler:
     # move up
     def bt_move_up_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX
-            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
             amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                self.window.translate(0, amount)
+                self.window.translate(Point2D(0, amount))
 
             else:
                 model, item = self.builder.get_object("obj_list")\
                         .get_selection().get_selected()
-                id = model.get_value(item, 0)
-                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
+                obj_id = model.get_value(item, 0)
+
+                self.main_window.display_file[obj_id].translate(Point2D(0, amount))
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw()
@@ -429,8 +423,7 @@ class MainWindow:
         self.ui_obj_list = None
         self.text_view = None
         self.drawing_area = None
-        self.display_file = []
-        self.id_cont = 0
+        self.display_file = {}
 
     def run(self):
         self.builder = Gtk.Builder()

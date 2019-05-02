@@ -1,6 +1,6 @@
 # classe que define uma Window do universo de representacao
-from matrixTransform import MatrixTransform
-from object import Point
+from matrixTransform import MatrixTransform2D
+from object import Point2D
 import numpy as np
 
 
@@ -8,14 +8,14 @@ class Window:
     # Point win_min_, win_max_, lower_, upper_;
 
     # construtor
-    def __init__(self, wc: Point, theta, width, height):
+    def __init__(self, wc: Point2D, theta, width, height):
         self.wc = wc
         self.theta = theta
         self.width = width
         self.height = height
         self.transform = self.update()
 
-    def scn_to_world(self, pt: Point):
+    def scn_to_world(self, pt: Point2D):
         self.transform = self.update()
         try:
             inverse = np.linalg.inv(self.transform)
@@ -26,9 +26,9 @@ class Window:
                     ([pt.x, pt.y, 1]), dtype=float)
             # print(f'd_world_x:{x} d_world_y:{y}')
             # print(f'wc_x:{self.wc.x} wc_y:{self.wc.y}')
-            return Point(x, y)
+            return Point2D(x, y)
 
-    def translate(self, pt: Point):
+    def translate(self, pt: Point2D):
         self.wc.x += pt.x
         self.wc.y += pt.y
         self.transform = self.update()
@@ -43,7 +43,7 @@ class Window:
         self.transform = self.update()
 
     def update(self):
-        mtr = MatrixTransform()
+        mtr = MatrixTransform2D()
         mtr.translate(self.wc.x, self.wc.y)
         mtr.rotate(self.theta)
         mtr.scale(2/self.width, 2/self.height)

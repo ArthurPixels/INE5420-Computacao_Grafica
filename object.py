@@ -9,11 +9,10 @@ class Object:
     # int id;
     # string name_, type_;
 
-    # construtor
-    def __init__(self, id, name, type):
-        self.id_ = id
-        self.name_ = name
-        self.type_ = type
+    def __init__(self, obj_id, name, obj_type):
+        self.id = obj_id
+        self.name = name
+        self.type = obj_type
 
     # metodo abstrato que define a maneira como o objeto eh desenhado na tela
     @abstractmethod
@@ -24,46 +23,50 @@ class Object:
     def update_scn(self, transform):
         pass
 
+    @abstractmethod
+    def translate(self, vec):
+        pass
+
 # end of class Object
 
 
 # classe que define um ponto basico no universo de representacao
-class Point():
-    # double x_, y_;
-    # construtor
+class Point2D:
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
 # end of class Point
 
+class Point3D:
+    def __init__(self, x: float, y: float, z: float):
+        self.x = x
+        self.y = y
+        self.z = z
 
 # classe que define uma linha basica dentro do universo de representacao
-class Line():
-    # construtor
-    def __init__(self, start: Point, end: Point):
+class Line:
+    def __init__(self, start: Point2D, end: Point2D):
         self.start = start
         self.end = end
 # end of class Line
 
 
 # classe que representa um poligono generico
-class Polygon():
+class Polygon:
 
     # list points_;
 
-    # construtor
     def __init__(self, points):
-        self.points_ = points
+        self.points = points
 # end of class Polygon
 
 
-class DrawablePoint(Point, Object):
-    # construtor
-    def __init__(self, id, name, x, y):
+class DrawablePoint2D(Point2D, Object):
+    def __init__(self, obj_id, name, x, y):
         # Object constructor
-        Object.__init__(self, id, name, "Point")
+        Object.__init__(self, obj_id, name, "Point")
         # Constructor of Point
-        Point.__init__(self, x, y)
+        Point2D.__init__(self, x, y)
         self.nx = x
         self.ny = y
         self.nz = 1
@@ -79,6 +82,10 @@ class DrawablePoint(Point, Object):
                 ([self.nx, self.ny, 1]), dtype=float).dot(transform)
         cairo.arc(vx, vy, 2, 0, 2*math.pi)
         cairo.fill()
+
+    def translate(self, vec):
+        self.x += vec.x
+        self.y += vec.y
 # end of class DrawablePoint
 
 
@@ -87,12 +94,12 @@ class DrawableLine(Line, Object):
     # Point firstP_, lastP_;
 
     # construtor
-    def __init__(self, id, name, start, end):
+    def __init__(self, obj_id, name, start, end):
         # constructor of Object
-        Object.__init__(self, id, name, "Line")
+        Object.__init__(self, obj_id, name, "Line")
         # constructor of Line
         Line.__init__(self, start, end)
-        self.scn = Line(Point(0, 0), Point(0, 0))
+        self.scn = Line(Point2D(0, 0), Point2D(0, 0))
 
     # implementacao do metodo abstrato definido em Object
     def update_scn(self, transform):
@@ -117,12 +124,18 @@ class DrawableLine(Line, Object):
         cairo.line_to(v_end_x, v_end_y)
         cairo.stroke()
         cairo.restore()
+
+        def translate(self, vec):
+            self.start.x += vec.x
+            self.start.y += vec.y
+            self.end.x += vec.x
+            self.end.y += vec.y
 # end of class DrawableLine
 
 
 class DrawablePolygon(Polygon, Object):
-    def __init__(self, id, name, points):
-        Object.__init__(self, id, name, "Polygon")
+    def __init__(self, obj_id, name, points):
+        Object.__init__(self, obj_id, name, "Polygon")
         Polygon.__init__(self, points)
 
     # implementacao do metodo abstrato definido em Object
@@ -135,18 +148,23 @@ class DrawablePolygon(Polygon, Object):
     def draw(self, transform_x, transform_y, cairo):
         cairo.save()
         cairo.move_to(
-            transform_x(self.points_[0].x_),
-            transform_y(self.points_[0].y_)
+            transform_x(self.points[0].x),
+            transform_y(self.points[0].y)
         )
-        for i in range(1, len(self.points_)):
+        for i in range(1, len(self.points)):
             cairo.line_to(
-                transform_x(self.points_[i].x_),
-                transform_y(self.points_[i].y_)
+                transform_x(self.points[i].x),
+                transform_y(self.points[i].y)
             )
 
         cairo.line_to(
-            transform_x(self.points_[0].x_),
-            transform_y(self.points_[0].y_)
+            transform_x(self.points[0].x),
+            transform_y(self.points[0].y)
         )
         cairo.stroke_preserve()
         # cairo.restore()
+
+        def translate(self, vec):
+            for i in range(self.points):
+                self.points[i].x += vec.x
+                self.points[i].y += vec.y
