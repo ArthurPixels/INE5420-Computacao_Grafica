@@ -1,11 +1,11 @@
-import gi
 import sys
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 from ine5420_computacao_grafica.object import (
-    Point2D, Polygon, DrawablePoint2D, DrawableLine)
+    Point2D, DrawablePolygon, DrawablePoint2D, DrawableLine)
 from ine5420_computacao_grafica.viewport import Viewport
 from ine5420_computacao_grafica.window import Window
-gi.require_version('Gtk', '3.0')
 
 
 # ################ Create object dialog signal handler #################
@@ -60,7 +60,7 @@ class CreateObjectHandler:
                     x, y = entrada[i].split()
                     pontos.append(Point2D(float(x), float(y)))
 
-                obj = Polygon(new_id, name, pontos)
+                obj = DrawablePolygon(new_id, name, pontos)
 
             # end if
 
@@ -364,7 +364,6 @@ class MainWindowHandler:
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
         except TypeError:
-            sys.exec_info()
             self.main_window.print_log(
                 """You must select an object first
                 or switch to Window movementation mode\n"""
@@ -406,18 +405,19 @@ class MainWindowHandler:
             else:
                 self.main_window.print_log('Radio button: object selected')
                 obj_list_ui = self.builder.get_object("obj_list")
-                model, item = obj_list_ui.get_selection().get_selected()
-                self.main_window.print_log(f'model: {model} item: {item}')
-                if item:
-                    try:
-                        self.main_window.print_log(model)
-                        obj_id = model.get_value(item, 0)
-                    except:
-                        self.main_window.print_log('waaa')
-                    else:
-                        self.main_window.print_log('deu boa')
-                        self.main_window.display_file[obj_id].translate(
-                            Point2D(0, amount))
+                (model, pathlist) = obj_list_ui.get_selection().get_selected_rows()
+                if pathlist:
+                    for path in pathlist:
+                        try:
+                            tree_iter = model.get_iter(path)
+                            obj_id = model.get_value(tree_iter, 0)
+                            self.main_window.print_log(f'obj_id: {obj_id}')
+                        except:
+                            self.main_window.print_log('failed to select object')
+                        else:
+                            self.main_window.print_log('deu boa')
+                            self.main_window.display_file[obj_id].translate(
+                                Point2D(0, amount))
                 else:
                     self.main_window.print_log('Object not selected')
             # re-draw objects on drawing_area

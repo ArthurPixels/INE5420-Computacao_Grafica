@@ -137,12 +137,14 @@ class DrawablePolygon(Polygon, Object):
     def __init__(self, obj_id, name, points):
         Object.__init__(self, obj_id, name, "Polygon")
         Polygon.__init__(self, points)
+        self.scn = []
 
     # implementacao do metodo abstrato definido em Object
     def update_scn(self, transform):
-        [self.scn.start.x, self.scn.start.y, nz] = np.array(
-                ([self.start.x, self.start.y, 1]),
-                dtype=float).dot(transform)
+        for index, point in enumerate(self.scn):
+            [point.start.x, point.start.y, _] = np.array(
+                    ([self.points[index].start.x, self.points[index].start.y, 1]),
+                    dtype=float).dot(transform)
 
     # implementacao do metodo abstrato definido em Object
     def draw(self, transform_x, transform_y, cairo):
@@ -164,7 +166,7 @@ class DrawablePolygon(Polygon, Object):
         cairo.stroke_preserve()
         # cairo.restore()
 
-        def translate(self, vec):
-            for i in range(self.points):
-                self.points[i].x += vec.x
-                self.points[i].y += vec.y
+    def translate(self, vec):
+        for i in range(self.points):
+            self.points[i].x += vec.x
+            self.points[i].y += vec.y

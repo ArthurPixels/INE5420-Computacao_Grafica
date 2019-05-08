@@ -56,7 +56,9 @@
                         <property name="activate_on_single_click">True</property>
                         <signal name="button-release-event" handler="obj_list_clicked_cb" swapped="no"/>
                         <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="tree_selection"/>
+                          <object class="GtkTreeSelection" id="tree_selection">
+                            <property name="mode">multiple</property>
+                          </object>
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn" id="tv_col_name">
