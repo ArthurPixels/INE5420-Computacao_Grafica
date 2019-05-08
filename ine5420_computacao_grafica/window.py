@@ -1,6 +1,6 @@
 # classe que define uma Window do universo de representacao
-from matrixTransform import MatrixTransform2D
-from object import Point2D
+from ine5420_computacao_grafica.matrixTransform import MatrixTransform2D
+from ine5420_computacao_grafica.object import Point2D
 import numpy as np
 
 
@@ -23,7 +23,7 @@ class Window:
             print('Error: (Window) not invertible')
         else:
             [x, y, z] = inverse @ np.array(
-                    ([pt.x, pt.y, 1]), dtype=float)
+                ([pt.x, pt.y, 1]), dtype=float)
             # print(f'd_world_x:{x} d_world_y:{y}')
             # print(f'wc_x:{self.wc.x} wc_y:{self.wc.y}')
             return Point2D(x, y)

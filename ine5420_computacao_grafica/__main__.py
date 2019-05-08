@@ -1,10 +1,10 @@
 import gi
 import sys
 from gi.repository import Gtk, Gdk
-from object import (
+from ine5420_computacao_grafica.object import (
     Point2D, Polygon, DrawablePoint2D, DrawableLine)
-from viewport import Viewport
-from window import Window
+from ine5420_computacao_grafica.viewport import Viewport
+from ine5420_computacao_grafica.window import Window
 gi.require_version('Gtk', '3.0')
 
 
@@ -43,12 +43,13 @@ class CreateObjectHandler:
                 x2 = float(self.builder.get_object("entry_line_x2").get_text())
                 y2 = float(self.builder.get_object("entry_line_y2").get_text())
 
-                obj = DrawableLine(new_id, name, Point2D(x1, y1), Point2D(x2, y2))
+                obj = DrawableLine(
+                    new_id, name, Point2D(x1, y1), Point2D(x2, y2))
 
             # new wireframe insertion
             elif page == 2:
                 buffer = self.builder.get_object("wireframe_points_view")\
-                        .get_buffer()
+                    .get_buffer()
                 start_iter = buffer.get_start_iter()
                 end_iter = buffer.get_end_iter()
                 entrada = buffer.get_text(start_iter, end_iter, False)
@@ -113,11 +114,12 @@ class MainWindowHandler:
         # clique com o botao direito
         if event.button == 3:
             self.builder.get_object("obj_list_popup_menu")\
-                    .popup_at_pointer(None)
+                .popup_at_pointer(None)
 
     # "add object" option selected from obj_list_popup_menu
     def add_obj_activated(self, widget):
-        self.builder.add_from_file("add_object.glade")
+        self.builder.add_from_file(
+            "ine5420_computacao_grafica/ui/add_object.glade")
         dialog_add_object = self.builder.get_object("dialog_add_object")
         self.builder.connect_signals(CreateObjectHandler(
             self.main_window, dialog_add_object)
@@ -128,10 +130,10 @@ class MainWindowHandler:
     def delete_obj_activated(self, widget):
         try:
             model, item = self.builder.get_object("obj_list")\
-                    .get_selection().get_selected()
+                .get_selection().get_selected()
             id = model.get_value(item, 0)
 
-            self.display_file.pop(id)
+            self.main_window.display_file.pop(id)
 
             model.remove(item)
 
@@ -157,12 +159,12 @@ class MainWindowHandler:
             self.da_width = width
             self.da_height = height
             self.main_window.print_log(
-                    'drawing area width:' + str(width))
+                'drawing area width:' + str(width))
             self.main_window.print_log(
-                    'drawing area height:' + str(height) + '\n')
+                'drawing area height:' + str(height) + '\n')
 
         self.viewport = Viewport(
-                10, 10, width - 10, height - 10, width, height)
+            10, 10, width - 10, height - 10, width, height)
 
         cairo_.save()
         cairo_.set_source_rgb(0, 0, 0)
@@ -194,9 +196,9 @@ class MainWindowHandler:
             current_pos = Point2D(event.x, event.y)
             # self.main_window.print_log(f'event-x:{event.x} eventy:{event.y}')
             delta_viewport = Point2D(
-                    current_pos.x - self.mouse_start_pos.x,
-                    current_pos.y - self.mouse_start_pos.y
-                )
+                current_pos.x - self.mouse_start_pos.x,
+                current_pos.y - self.mouse_start_pos.y
+            )
             # self.main_window.print_log(
             #         f'd_vp_x:{delta_viewport.x} d_vp_y:{delta_viewport.y}')
 
@@ -241,7 +243,7 @@ class MainWindowHandler:
 
             else:
                 model, item = self.builder.get_object("obj_list")\
-                        .get_selection().get_selected()
+                    .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # TODO
 
@@ -265,7 +267,7 @@ class MainWindowHandler:
 
             else:
                 model, item = self.builder.get_object("obj_list")\
-                        .get_selection().get_selected()
+                    .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # TODO
 
@@ -287,7 +289,7 @@ class MainWindowHandler:
 
             else:
                 model, item = self.builder.get_object("obj_list")\
-                        .get_selection().get_selected()
+                    .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # TODO
 
@@ -309,7 +311,7 @@ class MainWindowHandler:
 
             else:
                 model, item = self.builder.get_object("obj_list")\
-                        .get_selection().get_selected()
+                    .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
 
@@ -327,11 +329,12 @@ class MainWindowHandler:
             amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                self.window.translate(-amount, 0)
+                self.main_window.print_log('Radio button: window selected')
+                self.window.translate(Point2D(-amount, 0))
 
             else:
                 model, item = self.builder.get_object("obj_list")\
-                        .get_selection().get_selected()
+                    .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
 
@@ -349,11 +352,12 @@ class MainWindowHandler:
             amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                self.window.translate(0, -amount)
+                self.main_window.print_log('Radio button: window selected')
+                self.window.translate(Point2D(0, -amount))
 
             else:
                 model, item = self.builder.get_object("obj_list")\
-                        .get_selection().get_selected()
+                    .get_selection().get_selected()
                 id = model.get_value(item, 0)
                 # TODO
 
@@ -372,12 +376,13 @@ class MainWindowHandler:
             amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
-                self.window.translate(amount, 0)
+                self.main_window.print_log('Radio button: window selected')
+                self.window.translate(Point2D(amount, 0))
 
             # objects radio option selected
             else:
                 model, item = self.builder.get_object("obj_list")\
-                        .get_selection().get_selected()
+                    .get_selection().get_selected()
 
                 id = model.get_value(item, 0)
                 # IMPLEMENT
@@ -395,24 +400,35 @@ class MainWindowHandler:
     def bt_move_up_clicked_cb(self, button):
         try:
             amount = float(self.entry_step.get_text())
-
             if self.builder.get_object("radio_option_window").get_active():
+                self.main_window.print_log('Radio button: window selected')
                 self.window.translate(Point2D(0, amount))
-
             else:
-                model, item = self.builder.get_object("obj_list")\
-                        .get_selection().get_selected()
-                obj_id = model.get_value(item, 0)
-
-                self.main_window.display_file[obj_id].translate(Point2D(0, amount))
-
+                self.main_window.print_log('Radio button: object selected')
+                obj_list_ui = self.builder.get_object("obj_list")
+                model, item = obj_list_ui.get_selection().get_selected()
+                self.main_window.print_log(f'model: {model} item: {item}')
+                if item:
+                    try:
+                        self.main_window.print_log(model)
+                        obj_id = model.get_value(item, 0)
+                    except:
+                        self.main_window.print_log('waaa')
+                    else:
+                        self.main_window.print_log('deu boa')
+                        self.main_window.display_file[obj_id].translate(
+                            Point2D(0, amount))
+                else:
+                    self.main_window.print_log('Object not selected')
             # re-draw objects on drawing_area
-            Gtk.Widget.queue_draw()
+            self.main_window.drawing_area.queue_draw()
         except TypeError:
             self.main_window.print_log(
                 """You must select an object first
                 or switch to Window movementation mode\n"""
             )
+        except:
+            self.main_window.print_log('EXPLOSION!!!')
 
 
 # end of class Handler
@@ -427,7 +443,7 @@ class MainWindow:
 
     def run(self):
         self.builder = Gtk.Builder()
-        self.builder.add_from_file("ui.glade")
+        self.builder.add_from_file("ine5420_computacao_grafica/ui/ui.glade")
         self.builder.connect_signals(MainWindowHandler(self))
         self.ui_obj_list = self.builder.get_object("obj_list")
         self.text_view = self.builder.get_object("system_log")

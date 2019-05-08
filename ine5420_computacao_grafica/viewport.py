@@ -1,5 +1,5 @@
-from matrixTransform import MatrixTransform2D
-from object import Point2D
+from ine5420_computacao_grafica.matrixTransform import MatrixTransform2D
+from ine5420_computacao_grafica.object import Point2D
 import numpy as np
 
 
@@ -33,6 +33,6 @@ class Viewport:
             print('Error: (Viewport) not invertible')
         else:
             [x, y, z] = inverse @ np.array(
-                    ([pt.x, pt.y, 1]), dtype=float)
+                ([pt.x, pt.y, 1]), dtype=float)
             return Point2D(x, y)
 # end of class Viewport

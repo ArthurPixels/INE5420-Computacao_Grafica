@@ -1,5 +1,4 @@
-from point import Point
-from line import Line
+from ine5420_computacao_grafica.object import Point2D, Line
 
 
 class Region:
