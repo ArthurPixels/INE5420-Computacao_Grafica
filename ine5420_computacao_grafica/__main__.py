@@ -325,83 +325,26 @@ class MainWindowHandler:
 
     # move left
     def bt_move_left_clicked_cb(self, button):
-        try:
-            amount = float(self.entry_step.get_text())
-
-            if self.builder.get_object("radio_option_window").get_active():
-                self.main_window.print_log('Radio button: window selected')
-                self.window.translate(Point2D(-amount, 0))
-
-            else:
-                model, item = self.builder.get_object("obj_list")\
-                    .get_selection().get_selected()
-                id = model.get_value(item, 0)
-                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
-
-            # re-draw objects on drawing_area
-            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
-        except TypeError:
-            self.main_window.print_log(
-                """You must select an object first
-                or switch to Window movementation mode\n"""
-            )
+        self.handle_bt_translation(-1, 0)
 
     # move down
     def bt_move_down_clicked_cb(self, button):
-        try:
-            amount = float(self.entry_step.get_text())
-
-            if self.builder.get_object("radio_option_window").get_active():
-                self.main_window.print_log('Radio button: window selected')
-                self.window.translate(Point2D(0, -amount))
-
-            else:
-                model, item = self.builder.get_object("obj_list")\
-                    .get_selection().get_selected()
-                id = model.get_value(item, 0)
-                # TODO
-
-            # re-draw objects on drawing_area
-            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
-        except TypeError:
-            self.main_window.print_log(
-                """You must select an object first
-                or switch to Window movementation mode\n"""
-            )
+        self.handle_bt_translation(0, -1)
 
     # move right
     def bt_move_right_clicked_cb(self, button):
-        try:
-            amount = float(self.entry_step.get_text())
-
-            if self.builder.get_object("radio_option_window").get_active():
-                self.main_window.print_log('Radio button: window selected')
-                self.window.translate(Point2D(amount, 0))
-
-            # objects radio option selected
-            else:
-                model, item = self.builder.get_object("obj_list")\
-                    .get_selection().get_selected()
-
-                id = model.get_value(item, 0)
-                # IMPLEMENT
-
-            da = self.builder.get_object("gtk_drawing_area")
-            Gtk.Widget.queue_draw(da)
-
-        except TypeError:
-            self.main_window.print_log(
-                """You must select an object first
-                or switch to Window movementation mode\n"""
-            )
+        self.handle_bt_translation(1, 0)
 
     # move up
     def bt_move_up_clicked_cb(self, button):
+        self.handle_bt_translation(0, 1)
+
+    def handle_bt_translation(self, x, y):
         try:
             amount = float(self.entry_step.get_text())
             if self.builder.get_object("radio_option_window").get_active():
                 self.main_window.print_log('Radio button: window selected')
-                self.window.translate(Point2D(0, amount))
+                self.window.translate(Point2D(x*amount, y*amount))
             else:
                 self.main_window.print_log('Radio button: object selected')
                 obj_list_ui = self.builder.get_object("obj_list")
@@ -410,14 +353,13 @@ class MainWindowHandler:
                     for path in pathlist:
                         try:
                             tree_iter = model.get_iter(path)
-                            obj_id = model.get_value(tree_iter, 0)
+                            obj_id = int(model.get_value(tree_iter, 0))
                             self.main_window.print_log(f'obj_id: {obj_id}')
                         except:
                             self.main_window.print_log('failed to select object')
                         else:
-                            self.main_window.print_log('deu boa')
                             self.main_window.display_file[obj_id].translate(
-                                Point2D(0, amount))
+                                Point2D(x*amount, y*amount))
                 else:
                     self.main_window.print_log('Object not selected')
             # re-draw objects on drawing_area
