@@ -59,28 +59,19 @@ def calculateCSInterception(x, y, regionCode, m, xe, xd, yf, yt):
     new_y = None
     new_x = None
     if regionCode & 1: # LEFT
+        new_x = xe
         new_y = m * (xe - x) + y
     if regionCode & 2: # RIGHT
+        new_x = xd
         new_y = m * (xd - x) + y
     if regionCode & 4: # BOTTOM
         new_x = x + 1/m * (yf - y)
+        new_y = yf
     if regionCode & 8: # TOP
         new_x = x + 1/m * (yt - y)
+        new_y = yt
 
-
-    if new_x and new_y:
-        if new_x >= xe and new_x <= xd and new_y >= yf and new_y <= yt:
-            return Point2D(new_x, new_y)
-
-    elif new_x:
-        if new_x >= xe and new_x <= xd:
-            return Point2D(new_x, y)
-
-    elif new_y:
-        if new_y >= yf and new_y <= yt:
-            return Point2D(x, new_y)
-
-    return None
+    return Point2D(new_x, new_y)
 
 
 
