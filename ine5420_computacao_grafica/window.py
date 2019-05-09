@@ -22,7 +22,7 @@ class Window:
         except np.linalg.LinAlgError:
             print('Error: (Window) not invertible')
         else:
-            [x, y, z] = inverse @ np.array(
+            [x, y, _] = inverse @ np.array(
                 ([pt.x, pt.y, 1]), dtype=float)
             # print(f'd_world_x:{x} d_world_y:{y}')
             # print(f'wc_x:{self.wc.x} wc_y:{self.wc.y}')

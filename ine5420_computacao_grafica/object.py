@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from ine5420_computacao_grafica.matrixTransform import MatrixTransform2D
 import numpy as np
 import math
 
@@ -13,6 +14,7 @@ class Object:
         self.id = obj_id
         self.name = name
         self.type = obj_type
+        self.visible = True
 
     # metodo abstrato que define a maneira como o objeto eh desenhado na tela
     @abstractmethod
@@ -33,6 +35,10 @@ class Object:
 
     @abstractmethod
     def scale(self, vec):
+        pass
+
+    @abstractmethod
+    def clip(self):
         pass
 
 # end of class Object
@@ -95,9 +101,14 @@ class DrawablePoint2D(Point2D, Object):
         self.x += vec.x
         self.y += vec.y
 
-    def rotate(self, ):
-        self.x = 
-        self.y
+    def rotate(self, angle):
+        mtr = MatrixTransform2D()
+        mtr.translate(-self.x, -self.y)
+        mtr.rotate(angle)
+        mtr.translate(self.x, self.y)
+        [self.x, self.y, _] = np.array(
+            [self.x, self.y, 1], dtype=float
+        ) @ mtr.tr
 # end of class DrawablePoint
 
 
@@ -137,11 +148,30 @@ class DrawableLine(Line, Object):
         cairo.stroke()
         cairo.restore()
 
-        def translate(self, vec):
-            self.start.x += vec.x
-            self.start.y += vec.y
-            self.end.x += vec.x
-            self.end.y += vec.y
+    def translate(self, vec):
+        self.start.x += vec.x
+        self.start.y += vec.y
+        self.end.x += vec.x
+        self.end.y += vec.y
+
+    def rotate(self, angle):
+        def get_center():
+            cx = (self.start.x + self.end.x) / 2
+            cy = (self.start.y + self.end.y) / 2
+            return Point2D(cx, cy)
+        
+        center = get_center()
+        mtr = MatrixTransform2D()
+        mtr.translate(-center.x, -center.y)
+        mtr.rotate(angle)
+        mtr.translate(center.x, center.y)
+        [self.start.x, self.start.y, _] = np.array(
+            [self.start.x, self.start.y, 1], dtype=float
+        ) @ mtr.tr
+        [self.end.x, self.end.y, _] = np.array(
+            [self.end.x, self.end.y, 1], dtype=float
+        ) @ mtr.tr
+
 # end of class DrawableLine
 
 
@@ -182,3 +212,24 @@ class DrawablePolygon(Polygon, Object):
         for i in range(self.points):
             self.points[i].x += vec.x
             self.points[i].y += vec.y
+
+    def rotate(self, angle):
+        def get_center():
+            cx = 0
+            cy = 0
+            for point in self.points:
+                cx += point.x
+                cy += point.y
+            cx /= len(self.points)
+            cy /= len(self.points)
+            return Point2D(cx, cy)
+        
+        center = get_center()
+        mtr = MatrixTransform2D()
+        mtr.translate(-center.x, -center.y)
+        mtr.rotate(angle)
+        mtr.translate(center.x, center.y)
+        for point in self.points:
+            [point.x, point.y, _] = np.array(
+                [point.x, point.y, 1], dtype=float
+            ) @ mtr.tr
