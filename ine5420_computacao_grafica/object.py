@@ -27,6 +27,14 @@ class Object:
     def translate(self, vec):
         pass
 
+    @abstractmethod
+    def rotate(self, vec):
+        pass
+
+    @abstractmethod
+    def scale(self, vec):
+        pass
+
 # end of class Object
 
 
@@ -86,6 +94,10 @@ class DrawablePoint2D(Point2D, Object):
     def translate(self, vec):
         self.x += vec.x
         self.y += vec.y
+
+    def rotate(self, ):
+        self.x = 
+        self.y
 # end of class DrawablePoint
 
 

@@ -281,64 +281,60 @@ class MainWindowHandler:
 
     # Rotate left
     def bt_rotate_left_clockwise_clicked_cb(self, button):
-        try:
-            angle = float(self.entry_angle.get_text())
-
-            if self.builder.get_object("radio_option_window").get_active():
-                self.window.rotate(angle)
-
-            else:
-                model, item = self.builder.get_object("obj_list")\
-                    .get_selection().get_selected()
-                id = model.get_value(item, 0)
-                # TODO
-
-            # re-draw objects on drawing_area
-            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
-        except TypeError:
-            self.main_window.print_log(
-                """You must select an object first
-                or switch to Window movementation mode\n"""
-            )
+        self.handle_bt_rotation(-1)
 
     # Rotate right
     def bt_rotate_rigth_clockwise_clicked_cb(self, button):
+        self.handle_bt_rotation(1)
+
+    # orientation multiply angle (1, -1)
+    def handle_bt_rotation(self, orientation):
         try:
             angle = float(self.entry_angle.get_text())
-
             if self.builder.get_object("radio_option_window").get_active():
-                self.window.rotate(angle)
-
+                self.main_window.print_log('Radio button: window selected')
+                self.window.rotate(orientation*angle)
             else:
-                model, item = self.builder.get_object("obj_list")\
-                    .get_selection().get_selected()
-                id = model.get_value(item, 0)
-                # IMPLEMENTAR USANDO COORDENADAS HOMOGENEAS
-
+                self.main_window.print_log('Radio button: object selected')
+                obj_list_ui = self.builder.get_object("obj_list")
+                (model, pathlist) = obj_list_ui.get_selection().get_selected_rows()
+                if pathlist:
+                    for path in pathlist:
+                        try:
+                            tree_iter = model.get_iter(path)
+                            obj_id = int(model.get_value(tree_iter, 0))
+                            self.main_window.print_log(f'obj_id: {obj_id}')
+                        except:
+                            self.main_window.print_log('failed to select object')
+                        else:
+                            self.main_window.display_file[obj_id].rotate(
+                                orientation*angle)
+                else:
+                    self.main_window.print_log('Object not selected')
             # re-draw objects on drawing_area
-            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+            self.main_window.drawing_area.queue_draw()
         except TypeError:
             self.main_window.print_log(
                 """You must select an object first
                 or switch to Window movementation mode\n"""
             )
+        except:
+            self.main_window.print_log('EXPLOSION!!!')
 
-    # move left
+    # button translation
     def bt_move_left_clicked_cb(self, button):
         self.handle_bt_translation(-1, 0)
 
-    # move down
     def bt_move_down_clicked_cb(self, button):
         self.handle_bt_translation(0, -1)
 
-    # move right
     def bt_move_right_clicked_cb(self, button):
         self.handle_bt_translation(1, 0)
 
-    # move up
     def bt_move_up_clicked_cb(self, button):
         self.handle_bt_translation(0, 1)
 
+    # x, y multiply amount (-1, 0, 1)
     def handle_bt_translation(self, x, y):
         try:
             amount = float(self.entry_step.get_text())

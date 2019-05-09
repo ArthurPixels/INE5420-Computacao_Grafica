@@ -12,5 +12,13 @@ pytest = "^3.0"
 pkgconfig = "^1.5"
 
 [build-system]
-requires = ["poetry>=0.12", "setuptools", "wheel", "pycairo"]
+requires = ["poetry>=0.12", 
+    "cairo",
+    "pkgconf",
+    "gobject-introspection",
+    "gtk3",
+    "setuptools",
+    "wheel",
+    "pycairo"
+]
 build-backend = "poetry.masonry.api"
