@@ -180,8 +180,8 @@ class MainWindowHandler:
         cairo_.set_source_rgb(0, 0, 1)
         for obj in self.main_window.display_file.values():
             obj.update_scn(self.window.transform)
-            # TODO clip
-            if obj.visible:
+            obj.clip(self.viewport)
+            if obj.scn:
                 obj.draw(self.viewport.transform, cairo_)
 
     # ############### NAVIGATION #####################

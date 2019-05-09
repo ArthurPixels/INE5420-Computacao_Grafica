@@ -1,4 +1,87 @@
-from ine5420_computacao_grafica.object import Point2D, Line
+from ine5420_computacao_grafica.base_forms import Point2D, Line
+
+
+# Type OutCode
+# INSIDE = 0  // 0000
+# LEFT   = 1  // 0001
+# RIGHT  = 2  // 0010
+# BOTTOM = 4  // 0100
+# TOP    = 8  // 1000
+
+# compute the OutCode of a point
+def computeOutCode(x, y, xmin, ymin, xmax, ymax):
+    code = 0;
+    if x < xmin:
+        code |= 1
+    elif x > xmax:
+        code |= 2
+    if y < ymin:
+        code |= 4
+    elif y > ymax:
+        code |= 8
+
+    return code
+
+
+# clips a line using Cohen-Sutherland
+def cohenSutherlandClip(x0, y0, x1, y1):
+
+    codeP0 = computeOutCode(x0, y0, -1, -1, 1, 1)
+    codeP1 = computeOutCode(x1, y1, -1, -1, 1, 1)
+
+    if not(codeP0 | codeP1):
+        # TOTALMENTE CONTIDA
+        return Line(Point2D(x0, y0), Point2D(x1, y1))
+    elif (codeP0 & codeP1):
+        # TOTALMENTE FORA DA JANELA
+        return None
+    else:
+        # PARCIALMENTE CONTIDA (CALCULAR CLIP PARA OS DOIS PONTOS)
+        p0 = Point2D(x0, y0)
+        p1 = Point2D(x1, y1)
+
+        m = (y1-y0)/(x1-x0)
+
+        if codeP0:
+            p0 = calculateCSInterception(x0, y0, codeP0, m, -1, 1, -1, 1)
+
+        if p0 and codeP1:
+            p1 = calculateCSInterception(x1, y1, codeP1, m, -1, 1, -1, 1)
+
+        if not(p0) or not(p1):
+            return None
+        else:
+            return Line(p0, p1)
+
+
+# calculates a new point over the window based on the coordinates and region code
+def calculateCSInterception(x, y, regionCode, m, xe, xd, yf, yt):
+    new_y = None
+    new_x = None
+    if regionCode & 1: # LEFT
+        new_y = m * (xe - x) + y
+    if regionCode & 2: # RIGHT
+        new_y = m * (xd - x) + y
+    if regionCode & 4: # BOTTOM
+        new_x = x + 1/m * (yf - y)
+    if regionCode & 8: # TOP
+        new_x = x + 1/m * (yt - y)
+
+
+    if new_x and new_y:
+        if new_x >= xe and new_x <= xd and new_y >= yf and new_y <= yt:
+            return Point2D(new_x, new_y)
+
+    elif new_x:
+        if new_x >= xe and new_x <= xd:
+            return Point2D(new_x, y)
+
+    elif new_y:
+        if new_y >= yf and new_y <= yt:
+            return Point2D(x, new_y)
+
+    return None
+
 
 
 class Region:
@@ -110,7 +193,7 @@ class NichollLeeNicholl:
                 y2 = self.y1 + (-1 - self.x1) * self.mr
         else:
             return None
-        return Line(Point(self.x1, self.y1), Point(x2, y2))
+        return Line(Point2D(self.x1, self.y1), Point2D(x2, y2))
 
     def clip_edge(self):
         x1 = None
@@ -161,7 +244,7 @@ class NichollLeeNicholl:
                 y2 = 1
         else:
             return None
-        return Line(Point(x1, y1), Point(x2, y2))
+        return Line(Point2D(x1, y1), Point2D(x2, y2))
 
     def clip_corner(self):
         x1 = None
@@ -240,4 +323,4 @@ class NichollLeeNicholl:
                 y2 = self.y2
         else:
             return None
-        return Line(Point(x1, y1), Point(x2, y2))
+        return Line(Point2D(x1, y1), Point2D(x2, y2))
