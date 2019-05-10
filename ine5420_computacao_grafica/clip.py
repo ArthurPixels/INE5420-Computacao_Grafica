@@ -1,5 +1,6 @@
 from ine5420_computacao_grafica.base_forms import Point2D, Line
 
+############# COHEN-SUTHERLAND Line Clipping #####################
 
 # Type OutCode
 # INSIDE = 0  // 0000
@@ -58,30 +59,39 @@ def cohenSutherlandClip(x0, y0, x1, y1):
 def calculateCSInterception(x, y, regionCode, m, xe, xd, yf, yt):
     new_y = None
     new_x = None
+
     if regionCode & 1: # LEFT
         new_x = xe
         new_y = m * (xe - x) + y
+        if new_y <= yt and new_y >= yf:
+            return Point2D(new_x, new_y)
+
     if regionCode & 2: # RIGHT
         new_x = xd
         new_y = m * (xd - x) + y
+        if new_y <= yt and new_y >= yf:
+            return Point2D(new_x, new_y)
+
     if regionCode & 4: # BOTTOM
         new_x = x + 1/m * (yf - y)
         new_y = yf
+        if new_x <= xd and new_x >= xe:
+            return Point2D(new_x, new_y)
+
     if regionCode & 8: # TOP
         new_x = x + 1/m * (yt - y)
         new_y = yt
-
-    return Point2D(new_x, new_y)
-
+        return Point2D(new_x, new_y)
 
 
+####################### NICHOLL-LEE-NICHOLL 2D Line Clipping #################################
 class Region:
     center = 0
     edge = 1
     corner = 2
 
 
-class NichollLeeNicholl:
+def nichollLeeNichollClip(self):
     def __init__(self, line: Line):
         self.x1 = line.start.x
         self.y1 = line.start.y
