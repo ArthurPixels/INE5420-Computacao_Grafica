@@ -6,6 +6,7 @@ from ine5420_computacao_grafica.object import (
     Point2D, DrawablePolygon, DrawablePoint2D, DrawableLine)
 from ine5420_computacao_grafica.viewport import Viewport
 from ine5420_computacao_grafica.window import Window
+import math
 
 
 # ################ Create object dialog signal handler #################
@@ -208,7 +209,7 @@ class MainWindowHandler:
 
             # self.main_window.print_log(
             #         f'd_scn_x:{delta_scn.x} d_scn_y:{delta_scn.y}')
-            self.window.translate(self.window.scn_to_world(delta_scn))
+            self.window.translate(self.window.scn_to_world(delta_scn), 2)
             self.mouse_start_pos = current_pos
             widget.queue_draw()
 
@@ -222,13 +223,13 @@ class MainWindowHandler:
         accel_mask = Gtk.accelerator_get_default_mod_mask()
         direction = event.direction
         if event.state & accel_mask == Gdk.ModifierType.CONTROL_MASK:
-            amount = float(self.entry_step.get_text())
+            amount = math.radians(float(self.entry_step.get_text()))
             if direction == Gdk.ScrollDirection.UP:
                 self.window.zoom(-amount)
             else:
                 self.window.zoom(amount)
         else:
-            angle = float(self.entry_angle.get_text())
+            angle = math.radians(float(self.entry_angle.get_text()))
             if direction == Gdk.ScrollDirection.UP:
                 self.window.rotate(angle)
             else:
@@ -260,21 +261,30 @@ class MainWindowHandler:
     # Zoom out
     def bt_zoom_out_clicked_cb(self, button):
         try:
-            # PEGAR VALOR DE ALGUM ENTRY BOX
-            # QUE VAI REPRESENTAR A QUANTIDADE DE DESLOCAMENTO
-            amount = 10
+            amount = float(self.entry_step.get_text())
 
             if self.builder.get_object("radio_option_window").get_active():
                 self.window.zoom(amount)
 
             else:
-                model, item = self.builder.get_object("obj_list")\
-                    .get_selection().get_selected()
-                id = model.get_value(item, 0)
-                # TODO
+                self.main_window.print_log('Radio button: object selected')
+                obj_list_ui = self.builder.get_object("obj_list")
+                (model, pathlist) = obj_list_ui.get_selection().get_selected_rows()
+                if pathlist:
+                    for path in pathlist:
+                        try:
+                            tree_iter = model.get_iter(path)
+                            obj_id = int(model.get_value(tree_iter, 0))
+                            self.main_window.print_log(f'obj_id: {obj_id}')
+                        except:
+                            self.main_window.print_log('failed to select object')
+                        else:
+                            self.main_window.display_file[obj_id].scale(amount)
+                else:
+                    self.main_window.print_log('Object not selected')
 
             # re-draw objects on drawing_area
-            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+            self.main_window.drawing_area.queue_draw()
         except TypeError:
             self.main_window.print_log(
                 """You must select an object first
@@ -292,7 +302,7 @@ class MainWindowHandler:
     # orientation multiply angle (1, -1)
     def handle_bt_rotation(self, orientation):
         try:
-            angle = float(self.entry_angle.get_text())
+            angle = math.radians(float(self.entry_angle.get_text()))
             if self.builder.get_object("radio_option_window").get_active():
                 self.main_window.print_log('Radio button: window selected')
                 self.window.rotate(orientation*angle)
@@ -342,7 +352,7 @@ class MainWindowHandler:
             amount = float(self.entry_step.get_text())
             if self.builder.get_object("radio_option_window").get_active():
                 self.main_window.print_log('Radio button: window selected')
-                self.window.translate(Point2D(x*amount, y*amount))
+                self.window.translate(Point2D(x*amount, y*amount), 1)
             else:
                 self.main_window.print_log('Radio button: object selected')
                 obj_list_ui = self.builder.get_object("obj_list")
