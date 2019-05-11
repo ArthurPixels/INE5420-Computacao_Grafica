@@ -130,13 +130,19 @@ class MainWindowHandler:
     # "remove object" option selected from obj_list_popup_menu
     def delete_obj_activated(self, widget):
         try:
-            model, item = self.builder.get_object("obj_list")\
-                .get_selection().get_selected()
-            id = model.get_value(item, 0)
-
-            self.main_window.display_file.pop(id)
-
-            model.remove(item)
+            obj_list_ui = self.builder.get_object("obj_list")
+            (model, pathlist) = obj_list_ui.get_selection().get_selected_rows()
+            if pathlist:
+                for path in pathlist:
+                    try:
+                        tree_iter = model.get_iter(path)
+                        obj_id = int(model.get_value(tree_iter, 0))
+                        self.main_window.print_log(f'obj_id: {obj_id}')
+                    except:
+                        self.main_window.print_log('failed to select object')
+                    else:
+                        self.main_window.display_file.pop(obj_id)
+                        model.remove(tree_iter)
 
             # re-draw objects on drawing_area
             Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
