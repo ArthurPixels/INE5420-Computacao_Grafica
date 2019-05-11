@@ -2,6 +2,8 @@
 from ine5420_computacao_grafica.matrixTransform import MatrixTransform2D
 from ine5420_computacao_grafica.object import Point2D
 import numpy as np
+import math
+
 
 
 class Window:
@@ -10,7 +12,7 @@ class Window:
     # construtor
     def __init__(self, wc: Point2D, theta, width, height):
         self.wc = wc
-        self.theta = theta
+        self.theta = math.radians(theta)
         self.width = width
         self.height = height
         self.transform = self.update()
@@ -28,7 +30,13 @@ class Window:
             # print(f'wc_x:{self.wc.x} wc_y:{self.wc.y}')
             return Point2D(x, y)
 
-    def translate(self, pt: Point2D):
+    # m_angle = 2 for mouse, 1 for button
+    def translate(self, pt: Point2D, m_angle):
+        mtr = MatrixTransform2D()
+        mtr.rotate(-m_angle * self.theta)
+        [pt.x, pt.y, _] = np.array(
+                [pt.x, pt.y, 1], dtype=float
+            ) @ mtr.tr
         self.wc.x += pt.x
         self.wc.y += pt.y
         self.transform = self.update()

@@ -18,8 +18,8 @@ class MatrixTransform2D:
         self.tr = self.tr @ translation
 
     def rotate(self, theta):
-        [cos_theta] = np.cos([theta])
-        [sin_theta] = np.sin([theta])
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
         rotation = np.array((
             [cos_theta, -sin_theta, 0],
             [sin_theta, cos_theta, 0],
@@ -54,8 +54,8 @@ class MatrixTransform3D:
         self.tr = self.tr @ translation
 
     def rotate_x(self, theta):
-        [cos_theta] = np.cos([theta])
-        [sin_theta] = np.sin([theta])
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
         rotation = np.array((
             [1, 0, 0, 0],
             [0, cos_theta, sin_theta, 0],
@@ -65,8 +65,8 @@ class MatrixTransform3D:
         self.tr = self.tr @ rotation
 
     def rotate_y(self, theta):
-        [cos_theta] = np.cos([theta])
-        [sin_theta] = np.sin([theta])
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
         rotation = np.array((
             [cos_theta, 0, -sin_theta, 0],
             [0, 1, 0, 0],
@@ -76,8 +76,8 @@ class MatrixTransform3D:
         self.tr = self.tr @ rotation
 
     def rotate_z(self, theta):
-        [cos_theta] = np.cos([theta])
-        [sin_theta] = np.sin([theta])
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
         rotation = np.array((
             [cos_theta, sin_theta, 0, 0],
             [-sin_theta, cos_theta, 0, 0],

@@ -1,4 +1,5 @@
 # INE5420-Computacao_Grafica
+[Checklist](checklist.md)
 
 ### Virtual environment
 Criar um virtual environment para rodar o projeto:
