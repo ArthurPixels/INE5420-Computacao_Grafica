@@ -159,7 +159,7 @@ class DrawableLine(Line, Object):
         center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
-        mtr.rotate(angle)
+        mtr.rotate(angle/2)
         mtr.translate(center.x, center.y)
         [self.start.x, self.start.y, _] = np.array(
             [self.start.x, self.start.y, 1], dtype=float

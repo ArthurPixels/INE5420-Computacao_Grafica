@@ -1,7 +1,6 @@
 [voltar](README.md)
 
-1.1
-
+### 1.1
     [x] Display file capaz de representar retas, polígonos e pontos
     [x] Cada objeto possui um nome
     [x] Cada objeto possui um tipo
@@ -9,9 +8,7 @@
     [x] Funções de navegação 2D (movimentação do window)
     [x] Funções de Zoom (modificação do tamanho do window)
 
-
-1.2
-
+### 1.2
     [x] Translações
     [x] Escalonamentos em torno do centro do objeto
     Rotações:
@@ -19,9 +16,7 @@
         [x] Em torno do centro do objeto
         [ ] Em torno de um ponto qualquer (arbitrário)‏
 
-
-1.3
-
+### 1.3
     [x] Altere a representação dos objetos do mundo para suportar representação em um dos sistemas de coordenadas vistos em aula: Sistema de Coordenadas Normalizado (SCN) ou o Sistema de Coordenadas do Plano de Projeção (PPC). Agora a transformada de viewport é feita com estas coordenadas novas.
 
     [x] Atualize a translação e o zoom da window tendo em vista o novo sistema de coordenadas. A translação em particular deve levar em conta sempre o "para cima" do ponto de vista do usuário.
@@ -36,9 +31,7 @@
     [ ] Chame o descritor para cada objeto de seu mundo.
     Assim você só precisa se preocupar com o cabeçalho do .obj. O resto de se resove através de um percurso do display file com seu descritor.
 
-
-1.4
-
+### 1.4
     [ ] Clipagem de Pontos
     2 (duas) técnicas distintas de clipagem de Segmentos de Reta, à escolha, passíveis de serem intercambiadas/selecionadas pelo usuário em um checkbox.
 
@@ -53,9 +46,7 @@
 
     [ ] Implemente o clipping de polígonos preenchidos com o algoritmo de Weiler-Atherton. Para simplificar, considere apenas polígonos sem furos (mas possivelmente côncavos).
 
-
-1.5
-
+### 1.5
     [ ] Crie uma Classe Curva2D
 
     [ ] A curva deverá utilizar funções de suavização (blending functions) para se mostrar.
@@ -66,9 +57,7 @@
 
     [ ] Implemente o Clipping para esta curva utilizando o método descrito em aula (e nas transparências)
 
-
-1.6
-
+### 1.6
     [ ] Além de Hermite/Bezier, implemente também B-Splines com Forward Differences. Para tanto estenda a sua Curva2D.
 
     [ ] Deve ser possível ao usuário entrar com quantos pontos de controle desejar, com um mínimo de n = 4.

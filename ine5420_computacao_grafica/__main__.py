@@ -22,8 +22,6 @@ class CreateObjectHandler:
 
         try:
             name = self.builder.get_object("entry_obj_name").get_text()
-            if name == "":
-                raise ValueError()
 
             new_id = 0
             if self.main_window.display_file:
@@ -35,6 +33,8 @@ class CreateObjectHandler:
                 x = float(self.builder.get_object("entry_point_x").get_text())
                 y = float(self.builder.get_object("entry_point_y").get_text())
 
+                if name == "":
+                    name = f'Point {new_id}'
                 obj = DrawablePoint2D(new_id, name, x, y)
 
             # new line insertion
@@ -44,6 +44,8 @@ class CreateObjectHandler:
                 x2 = float(self.builder.get_object("entry_line_x2").get_text())
                 y2 = float(self.builder.get_object("entry_line_y2").get_text())
 
+                if name == "":
+                    name = f'Line {new_id}'
                 obj = DrawableLine(
                     new_id, name, Point2D(x1, y1), Point2D(x2, y2))
 
@@ -61,9 +63,14 @@ class CreateObjectHandler:
                     x, y = entrada[i].split()
                     pontos.append(Point2D(float(x), float(y)))
 
+                if name == "":
+                    name = f'Wireframe {new_id}'
                 obj = DrawablePolygon(new_id, name, pontos)
 
             # end if
+
+            if name == "":
+                raise ValueError()
 
             self.main_window.display_file[obj.id] = obj
 
@@ -244,30 +251,18 @@ class MainWindowHandler:
 
     # Zoom in
     def bt_zoom_in_clicked_cb(self, button):
-        try:
-            amount = float(self.entry_step.get_text())
-
-            if self.builder.get_object("radio_option_window").get_active():
-                self.window.zoom(-amount)
-
-            else:
-                model, item = self.builder.get_object("obj_list")\
-                    .get_selection().get_selected()
-                id = model.get_value(item, 0)
-                # TODO
-
-            # re-draw objects on drawing_area
-            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
-        except TypeError:
-            self.main_window.print_log(
-                """You must select an object first
-                or switch to Window movementation mode\n"""
-            )
+        self.handle_bt_scale(True)
 
     # Zoom out
     def bt_zoom_out_clicked_cb(self, button):
+        self.handle_bt_scale(False)
+
+    # scale: True to increase, False to decrease
+    def handle_bt_scale(self, increase):
         try:
-            amount = float(self.entry_step.get_text())
+            amount = 1 + (float(self.entry_step.get_text()) / 100)
+            if(increase):
+                amount = 1/amount
 
             if self.builder.get_object("radio_option_window").get_active():
                 self.window.zoom(amount)
