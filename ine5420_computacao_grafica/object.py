@@ -144,9 +144,12 @@ class DrawableLine(Line, Object):
 
 
     def clip(self, viewport):
-        self.scn = clip.cohenSutherlandClip(
-            self.scn.start.x, self.scn.start.y, self.scn.end.x, self.scn.end.y
-        )
+        # self.scn = clip.cohenSutherlandClip(
+        #     self.scn.start.x, self.scn.start.y, self.scn.end.x, self.scn.end.y
+        # )
+        self.scn = clip.nichollLeeNichollClip(self, Line(
+            Point2D(self.scn.start.x, self.scn.start.y),
+            Point2D(self.scn.end.x, self.scn.end.y)))
 
 # end of class DrawableLine
 
