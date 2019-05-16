@@ -1,7 +1,9 @@
 from abc import abstractmethod
 from ine5420_computacao_grafica.matrixTransform import MatrixTransform2D
+from ine5420_computacao_grafica.base_forms import Point2D, Point3D, Line, Polygon
 import numpy as np
 import math
+import ine5420_computacao_grafica.clip as clip
 
 
 # classe que define um objeto basico do universo de representacao
@@ -42,38 +44,6 @@ class Object:
         pass
 
 # end of class Object
-
-
-# classe que define um ponto basico no universo de representacao
-class Point2D:
-    def __init__(self, x: float, y: float):
-        self.x = x
-        self.y = y
-# end of class Point
-
-class Point3D:
-    def __init__(self, x: float, y: float, z: float):
-        self.x = x
-        self.y = y
-        self.z = z
-
-# classe que define uma linha basica dentro do universo de representacao
-class Line:
-    def __init__(self, start: Point2D, end: Point2D):
-        self.start = start
-        self.end = end
-# end of class Line
-
-
-# classe que representa um poligono generico
-class Polygon:
-
-    # list points_;
-
-    def __init__(self, points):
-        self.points = points
-# end of class Polygon
-
 
 class DrawablePoint2D(Point2D, Object):
     def __init__(self, obj_id, name, x, y):
@@ -118,11 +88,11 @@ class DrawableLine(Line, Object):
         Object.__init__(self, obj_id, name, "Line")
         # constructor of Line
         Line.__init__(self, start, end)
-        self.scn = Line(Point2D(0, 0), Point2D(0, 0))
 
     # implementacao do metodo abstrato definido em Object
     def update_scn(self, transform):
         [self.scn.start.x, self.scn.start.y, _] = np.array(
+
                 ([self.start.x, self.start.y, 1]),
                 dtype=float).dot(transform)
         [self.scn.end.x, self.scn.end.y, _] = np.array(
@@ -155,7 +125,7 @@ class DrawableLine(Line, Object):
             cx = (self.start.x + self.end.x) / 2
             cy = (self.start.y + self.end.y) / 2
             return Point2D(cx, cy)
-        
+
         center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
@@ -185,6 +155,15 @@ class DrawableLine(Line, Object):
         [self.end.x, self.end.y, _] = np.array(
             [self.end.x, self.end.y, 1], dtype=float
         ) @ mtr.tr
+
+
+    def clip(self, viewport):
+        # self.scn = clip.cohenSutherlandClip(
+        #     self.scn.start.x, self.scn.start.y, self.scn.end.x, self.scn.end.y
+        # )
+        self.scn = clip.nichollLeeNichollClip(self, Line(
+            Point2D(self.scn.start.x, self.scn.start.y),
+            Point2D(self.scn.end.x, self.scn.end.y)))
 
 # end of class DrawableLine
 
@@ -237,7 +216,7 @@ class DrawablePolygon(Polygon, Object):
             cx /= len(self.points)
             cy /= len(self.points)
             return Point2D(cx, cy)
-        
+
         center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
