@@ -75,6 +75,9 @@ class DrawablePoint2D(Point2D, Object):
 
     def scale(self, amount):
         pass
+    
+    def clip(self):
+        pass
 # end of class DrawablePoint
 
 
@@ -88,11 +91,11 @@ class DrawableLine(Line, Object):
         Object.__init__(self, obj_id, name, "Line")
         # constructor of Line
         Line.__init__(self, start, end)
+        self.scn = Line(Point2D(0, 0), Point2D(0, 0))
 
     # implementacao do metodo abstrato definido em Object
     def update_scn(self, transform):
         [self.scn.start.x, self.scn.start.y, _] = np.array(
-
                 ([self.start.x, self.start.y, 1]),
                 dtype=float).dot(transform)
         [self.scn.end.x, self.scn.end.y, _] = np.array(
@@ -125,7 +128,7 @@ class DrawableLine(Line, Object):
             cx = (self.start.x + self.end.x) / 2
             cy = (self.start.y + self.end.y) / 2
             return Point2D(cx, cy)
-
+        
         center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
@@ -161,9 +164,14 @@ class DrawableLine(Line, Object):
         # self.scn = clip.cohenSutherlandClip(
         #     self.scn.start.x, self.scn.start.y, self.scn.end.x, self.scn.end.y
         # )
-        self.scn = clip.nichollLeeNichollClip(self, Line(
+        temp = clip.nichollLeeNichollClip(self, Line(
             Point2D(self.scn.start.x, self.scn.start.y),
             Point2D(self.scn.end.x, self.scn.end.y)))
+        if temp:
+            self.scn = temp
+            self.visible = True
+        else:
+            self.visible = False
 
 # end of class DrawableLine
 
@@ -216,7 +224,7 @@ class DrawablePolygon(Polygon, Object):
             cx /= len(self.points)
             cy /= len(self.points)
             return Point2D(cx, cy)
-
+        
         center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)

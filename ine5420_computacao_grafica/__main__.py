@@ -117,6 +117,24 @@ class MainWindowHandler:
     def onMainWindowDestroy(self, *args):
         Gtk.main_quit()
 
+    def cb_menu_file_new(self, *args):
+        pass
+
+    def cb_menu_file_open(self, *args):
+        pass
+
+    def cb_menu_file_save(self, *args):
+        pass
+
+    def cb_menu_file_save_as(self, *args):
+        pass
+
+    def cb_menu_file_quit(self, *args):
+        self.main_window.gtk_window.destroy()
+
+    def cb_menu_edit_preferences(self, *args):
+        pass
+
     # trata dos eventos que seguem a um clique sobre a object_list
     def obj_list_clicked_cb(self, widget, event):
         # clique com o botao direito
@@ -195,7 +213,7 @@ class MainWindowHandler:
         for obj in self.main_window.display_file.values():
             obj.update_scn(self.window.transform)
             obj.clip(self.viewport)
-            if obj.scn:
+            if obj.visible:
                 obj.draw(self.viewport.transform, cairo_)
 
     # ############### NAVIGATION #####################
@@ -400,8 +418,8 @@ class MainWindow:
         self.text_view = self.builder.get_object("system_log")
         self.drawing_area = self.builder.get_object("gtk_drawing_area")
 
-        gtk_window = self.builder.get_object("gtk_window")
-        gtk_window.show_all()
+        self.gtk_window = self.builder.get_object("gtk_window")
+        self.gtk_window.show_all()
 
         Gtk.main()
 
