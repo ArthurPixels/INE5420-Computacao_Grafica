@@ -75,7 +75,7 @@ class DrawablePoint2D(Point2D, Object):
 
     def scale(self, amount):
         pass
-    
+
     def clip(self):
         pass
 # end of class DrawablePoint
@@ -128,7 +128,7 @@ class DrawableLine(Line, Object):
             cx = (self.start.x + self.end.x) / 2
             cy = (self.start.y + self.end.y) / 2
             return Point2D(cx, cy)
-        
+
         center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
@@ -146,7 +146,7 @@ class DrawableLine(Line, Object):
             cx = (self.start.x + self.end.x) / 2
             cy = (self.start.y + self.end.y) / 2
             return Point2D(cx, cy)
-        
+
         center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
@@ -177,10 +177,11 @@ class DrawableLine(Line, Object):
 
 
 class DrawablePolygon(Polygon, Object):
-    def __init__(self, obj_id, name, points):
+    def __init__(self, obj_id, name, points, filled):
         Object.__init__(self, obj_id, name, "Polygon")
         Polygon.__init__(self, points)
         self.scn = []
+        self.filled = filled
 
     # implementacao do metodo abstrato definido em Object
     def update_scn(self, transform):
@@ -207,6 +208,9 @@ class DrawablePolygon(Polygon, Object):
             transform_y(self.points[0].y)
         )
         cairo.stroke_preserve()
+
+        if filled:
+            pass   # PREENCHER O POLIGONO
         # cairo.restore()
 
     def translate(self, vec):
@@ -224,7 +228,7 @@ class DrawablePolygon(Polygon, Object):
             cx /= len(self.points)
             cy /= len(self.points)
             return Point2D(cx, cy)
-        
+
         center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
@@ -235,7 +239,7 @@ class DrawablePolygon(Polygon, Object):
             [point.x, point.y, _] = np.array(
                 [point.x, point.y, 1], dtype=float
             ) @ mtr.tr
-    
+
     def scale(self, amount):
         def get_center():
             cx = 0

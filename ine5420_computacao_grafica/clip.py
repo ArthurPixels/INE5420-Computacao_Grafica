@@ -85,12 +85,6 @@ def calculateCSInterception(x, y, regionCode, m, xe, xd, yf, yt):
 
 
 ####################### NICHOLL-LEE-NICHOLL 2D Line Clipping #################################
-# class that defines the codification for the possible regions of the algorithm
-class Region:
-    Center = 0
-    Edge = 1
-    Corner = 2
-
 # returns the type of region of a point in the plan
 def getAngularCoeficients(p1: Point2D, p2: Point2D):
     TL = float(1-p1.y) / float(-1-p1.x)
@@ -319,3 +313,9 @@ def nichollLeeNichollClip(self, line: Line):
         clipped.end.x *= -1
 
     return clipped
+
+
+####################### WEILER-ATHERTON Polygon Clipping #################################
+# clips a polygon (filled or not) using Weiler-Atherton algorithm
+def weilerAthertonPolygonClip(self, polygon: Polygon):
+    pass
