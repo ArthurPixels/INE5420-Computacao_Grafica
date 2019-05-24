@@ -12,9 +12,9 @@
     [x] Translações
     [x] Escalonamentos em torno do centro do objeto
     Rotações:
-        [ ] Em torno do centro do mundo
+        [x] Em torno do centro do mundo
         [x] Em torno do centro do objeto
-        [ ] Em torno de um ponto qualquer (arbitrário)‏
+        [x] Em torno de um ponto qualquer (arbitrário)‏
 
 ### 1.3
     [x] Altere a representação dos objetos do mundo para suportar representação em um dos sistemas de coordenadas vistos em aula: Sistema de Coordenadas Normalizado (SCN) ou o Sistema de Coordenadas do Plano de Projeção (PPC). Agora a transformada de viewport é feita com estas coordenadas novas.
@@ -32,7 +32,7 @@
     Assim você só precisa se preocupar com o cabeçalho do .obj. O resto de se resove através de um percurso do display file com seu descritor.
 
 ### 1.4
-    [ ] Clipagem de Pontos
+    [x] Clipagem de Pontos
     2 (duas) técnicas distintas de clipagem de Segmentos de Reta, à escolha, passíveis de serem intercambiadas/selecionadas pelo usuário em um checkbox.
 
     [ ] Clipagem de Polígonos (técnica à escolha).

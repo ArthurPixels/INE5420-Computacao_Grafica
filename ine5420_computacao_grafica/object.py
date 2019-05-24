@@ -32,11 +32,11 @@ class Object:
         pass
 
     @abstractmethod
-    def rotate(self, vec):
+    def rotate(self, vec, center):
         pass
 
     @abstractmethod
-    def scale(self, amount):
+    def scale(self, amount, center):
         pass
 
     @abstractmethod
@@ -70,10 +70,10 @@ class DrawablePoint2D(Point2D, Object):
         self.x += vec.x
         self.y += vec.y
 
-    def rotate(self, angle):
+    def rotate(self, angle, center):
         pass
 
-    def scale(self, amount):
+    def scale(self, amount, center):
         pass
 
     def clip(self):
@@ -117,23 +117,31 @@ class DrawableLine(Line, Object):
         cairo.stroke()
         cairo.restore()
 
+    def get_center(self, center):
+        cx = (self.start.x + self.end.x) / 2
+        cy = (self.start.y + self.end.y) / 2
+
+        if center == 1:
+            return Point2D(0, 0)
+        elif center == 2:
+            return Point2D(cx, cy)
+        else:
+            return self.start
+
     def translate(self, vec):
         self.start.x += vec.x
         self.start.y += vec.y
         self.end.x += vec.x
         self.end.y += vec.y
 
-    def rotate(self, angle):
-        def get_center():
-            cx = (self.start.x + self.end.x) / 2
-            cy = (self.start.y + self.end.y) / 2
-            return Point2D(cx, cy)
+    def rotate(self, angle, ctr):
+        center = self.get_center(ctr)
 
-        center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
         mtr.rotate(angle/2)
         mtr.translate(center.x, center.y)
+
         [self.start.x, self.start.y, _] = np.array(
             [self.start.x, self.start.y, 1], dtype=float
         ) @ mtr.tr
@@ -141,17 +149,14 @@ class DrawableLine(Line, Object):
             [self.end.x, self.end.y, 1], dtype=float
         ) @ mtr.tr
 
-    def scale(self, amount):
-        def get_center():
-            cx = (self.start.x + self.end.x) / 2
-            cy = (self.start.y + self.end.y) / 2
-            return Point2D(cx, cy)
+    def scale(self, amount, ctr):
+        center = self.get_center(ctr)
 
-        center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
         mtr.scale(amount, amount)
         mtr.translate(center.x, center.y)
+
         [self.start.x, self.start.y, _] = np.array(
             [self.start.x, self.start.y, 1], dtype=float
         ) @ mtr.tr
@@ -160,13 +165,18 @@ class DrawableLine(Line, Object):
         ) @ mtr.tr
 
 
-    def clip(self, viewport):
-        # self.scn = clip.cohenSutherlandClip(
-        #     self.scn.start.x, self.scn.start.y, self.scn.end.x, self.scn.end.y
-        # )
-        temp = clip.nichollLeeNichollClip(self, Line(
-            Point2D(self.scn.start.x, self.scn.start.y),
-            Point2D(self.scn.end.x, self.scn.end.y)))
+    def clip(self, algorithm):
+        temp = None
+        if algorithm == 1:
+            temp = clip.cohenSutherlandClip(
+                self.scn.start.x, self.scn.start.y, self.scn.end.x, self.scn.end.y
+            )
+        elif algorithm == 2:
+            temp = clip.nichollLeeNichollClip(self, Line(
+                Point2D(self.scn.start.x, self.scn.start.y),
+                Point2D(self.scn.end.x, self.scn.end.y)))
+        else:
+            print("Invalid Clipping Algorithm")
         if temp:
             self.scn = temp
             self.visible = True
@@ -213,23 +223,29 @@ class DrawablePolygon(Polygon, Object):
             pass   # PREENCHER O POLIGONO
         # cairo.restore()
 
+    def get_center(self, center):
+        cx = 0
+        cy = 0
+        for point in self.points:
+            cx += point.x
+            cy += point.y
+        cx /= len(self.points)
+        cy /= len(self.points)
+
+        if center == 1:
+            return Point2D(0, 0)
+        elif center == 2:
+            return Point2D(cx, cy)
+        else:
+            return self.start
+
     def translate(self, vec):
         for i in range(self.points):
             self.points[i].x += vec.x
             self.points[i].y += vec.y
 
-    def rotate(self, angle):
-        def get_center():
-            cx = 0
-            cy = 0
-            for point in self.points:
-                cx += point.x
-                cy += point.y
-            cx /= len(self.points)
-            cy /= len(self.points)
-            return Point2D(cx, cy)
-
-        center = get_center()
+    def rotate(self, angle, ctr):
+        center = self.get_center(ctr)
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
         mtr.rotate(angle)
@@ -240,18 +256,9 @@ class DrawablePolygon(Polygon, Object):
                 [point.x, point.y, 1], dtype=float
             ) @ mtr.tr
 
-    def scale(self, amount):
-        def get_center():
-            cx = 0
-            cy = 0
-            for point in self.points:
-                cx += point.x
-                cy += point.y
-            cx /= len(self.points)
-            cy /= len(self.points)
-            return Point2D(cx, cy)
+    def scale(self, amount, ctr):
+        center = self.get_center(ctr)
 
-        center = get_center()
         mtr = MatrixTransform2D()
         mtr.translate(-center.x, -center.y)
         mtr.scale(amount, amount)

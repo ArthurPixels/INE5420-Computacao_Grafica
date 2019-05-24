@@ -1,4 +1,4 @@
-from ine5420_computacao_grafica.base_forms import Point2D, Line
+from ine5420_computacao_grafica.base_forms import Point2D, Line, Polygon
 
 ############# COHEN-SUTHERLAND Line Clipping #####################
 
@@ -11,7 +11,7 @@ from ine5420_computacao_grafica.base_forms import Point2D, Line
 
 # compute the OutCode of a point
 def computeOutCode(x, y, xmin, ymin, xmax, ymax):
-    code = 0;
+    code = 0
     if x < xmin:
         code |= 1
     elif x > xmax:

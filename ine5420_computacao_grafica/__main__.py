@@ -91,12 +91,43 @@ class CreateObjectHandler:
         self.dialog_add_object.destroy()
 # end of class CreateObjectHandler
 
+class PreferencesWindowHandler:
+    def __init__(self, main_window, dialog_preferences):
+        self.main_window = main_window
+        self.builder = main_window.builder
+        self.dialog_preferences = dialog_preferences
+
+    def cb_preferences_apply(self, *args):
+        if self.builder.get_object("rb_rotation_center_world").get_active():
+            self.main_window.rotationCenter = RotationCenter.WORLD
+        elif self.builder.get_object("rb_rotation_center_object").get_active():
+            self.main_window.rotationCenter = RotationCenter.OBJECT
+        elif self.builder.get_object("rb_rotation_center_arbitrary").get_active():
+            self.main_window.rotationCenter = RotationCenter.ARBITRARY
+
+        if self.builder.get_object("rb_clipping_algorithm_cs").get_active():
+            self.main_window.clippingAlgorithm = ClippingAlgorithm.CS
+        elif self.builder.get_object("rb_clipping_algorithm_nln").get_active():
+            self.main_window.clippingAlgorithm = ClippingAlgorithm.NLN
+
+        self.dialog_preferences.destroy()
+
+    def cb_preferences_cancel(self, button):
+        self.dialog_preferences.destroy()
 
 class MouseButtons:
     left = 1
     middle = 2
     right = 3
 
+class RotationCenter:
+    WORLD = 1
+    OBJECT = 2
+    ARBITRARY = 3
+
+class ClippingAlgorithm:
+    CS = 1
+    NLN = 2
 
 # ################ #################
 class MainWindowHandler:
@@ -133,7 +164,26 @@ class MainWindowHandler:
         self.main_window.gtk_window.destroy()
 
     def cb_menu_edit_preferences(self, *args):
-        pass
+        self.builder.add_from_file(
+            "ine5420_computacao_grafica/ui/preferences.glade")
+        dialog_preferences = self.builder.get_object("dialog_preferences")
+        self.builder.connect_signals(PreferencesWindowHandler(
+            self.main_window, dialog_preferences)
+        )
+
+        if self.main_window.rotationCenter == RotationCenter.WORLD:
+            self.builder.get_object("rb_rotation_center_world").set_active(True)
+        elif self.main_window.rotationCenter == RotationCenter.OBJECT:
+            self.builder.get_object("rb_rotation_center_object").set_active(True)
+        elif self.main_window.rotationCenter == RotationCenter.ARBITRARY:
+            self.builder.get_object("rb_rotation_center_arbitrary").set_active(True)
+
+        if self.main_window.clippingAlgorithm == ClippingAlgorithm.CS:
+            self.builder.get_object("rb_clipping_algorithm_cs").set_active(True)
+        elif self.main_window.clippingAlgorithm == ClippingAlgorithm.NLN:
+            self.builder.get_object("rb_clipping_algorithm_nln").set_active(True)
+
+        dialog_preferences.show_all()
 
     # trata dos eventos que seguem a um clique sobre a object_list
     def obj_list_clicked_cb(self, widget, event):
@@ -212,7 +262,7 @@ class MainWindowHandler:
         cairo_.set_source_rgb(0, 0, 1)
         for obj in self.main_window.display_file.values():
             obj.update_scn(self.window.transform)
-            obj.clip(self.viewport)
+            obj.clip(self.main_window.clippingAlgorithm)
             if obj.visible:
                 obj.draw(self.viewport.transform, cairo_)
 
@@ -235,12 +285,29 @@ class MainWindowHandler:
             )
             # self.main_window.print_log(
             #         f'd_vp_x:{delta_viewport.x} d_vp_y:{delta_viewport.y}')
-
             delta_scn = self.viewport.viewport_to_scn(delta_viewport)
-
             # self.main_window.print_log(
             #         f'd_scn_x:{delta_scn.x} d_scn_y:{delta_scn.y}')
-            self.window.translate(self.window.scn_to_world(delta_scn), 2)
+            delta_world = self.window.scn_to_world(delta_scn)
+            if self.builder.get_object("radio_option_window").get_active():
+                self.window.translate(delta_world, 2)
+            else:
+                self.main_window.print_log('Radio button: object selected')
+                obj_list_ui = self.builder.get_object("obj_list")
+                (model, pathlist) = obj_list_ui.get_selection().get_selected_rows()
+                if pathlist:
+                    for path in pathlist:
+                        try:
+                            tree_iter = model.get_iter(path)
+                            obj_id = int(model.get_value(tree_iter, 0))
+                            self.main_window.print_log(f'obj_id: {obj_id}')
+                        except:
+                            self.main_window.print_log('failed to select object')
+                        else:
+                            self.main_window.display_file[obj_id].translate(delta_world)
+                else:
+                    self.main_window.print_log('Object not selected')
+            
             self.mouse_start_pos = current_pos
             widget.queue_draw()
 
@@ -254,17 +321,66 @@ class MainWindowHandler:
         accel_mask = Gtk.accelerator_get_default_mod_mask()
         direction = event.direction
         if event.state & accel_mask == Gdk.ModifierType.CONTROL_MASK:
-            amount = math.radians(float(self.entry_step.get_text()))
-            if direction == Gdk.ScrollDirection.UP:
-                self.window.zoom(-amount)
+            amount = 1 + (float(self.entry_step.get_text()) / 100)
+            if self.builder.get_object("radio_option_window").get_active():
+                if direction == Gdk.ScrollDirection.UP:
+                    self.window.zoom(-amount)
+                else:
+                    self.window.zoom(amount)
+
             else:
-                self.window.zoom(amount)
+                self.main_window.print_log('Radio button: object selected')
+                obj_list_ui = self.builder.get_object("obj_list")
+                (model, pathlist) = obj_list_ui.get_selection().get_selected_rows()
+                if pathlist:
+                    for path in pathlist:
+                        try:
+                            tree_iter = model.get_iter(path)
+                            obj_id = int(model.get_value(tree_iter, 0))
+                            self.main_window.print_log(f'obj_id: {obj_id}')
+                        except:
+                            self.main_window.print_log('failed to select object')
+                        else:
+                            if direction == Gdk.ScrollDirection.UP:
+                                self.main_window.display_file[obj_id].scale(1/amount,
+                                        self.main_window.rotationCenter)
+                            else:
+                                self.main_window.display_file[obj_id].scale(amount,
+                                        self.main_window.rotationCenter)
+                else:
+                    self.main_window.print_log('Object not selected')
+
+            
         else:
             angle = math.radians(float(self.entry_angle.get_text()))
-            if direction == Gdk.ScrollDirection.UP:
-                self.window.rotate(angle)
+            if self.builder.get_object("radio_option_window").get_active():
+                if direction == Gdk.ScrollDirection.UP:
+                    self.window.rotate(angle)
+                else:
+                    self.window.rotate(-angle)
+
             else:
-                self.window.rotate(-angle)
+                self.main_window.print_log('Radio button: object selected')
+                obj_list_ui = self.builder.get_object("obj_list")
+                (model, pathlist) = obj_list_ui.get_selection().get_selected_rows()
+                if pathlist:
+                    for path in pathlist:
+                        try:
+                            tree_iter = model.get_iter(path)
+                            obj_id = int(model.get_value(tree_iter, 0))
+                            self.main_window.print_log(f'obj_id: {obj_id}')
+                        except:
+                            self.main_window.print_log('failed to select object')
+                        else:
+                            if direction == Gdk.ScrollDirection.UP:
+                                self.main_window.display_file[obj_id].rotate(2*angle,
+                                        self.main_window.rotationCenter)
+                            else:
+                                self.main_window.display_file[obj_id].rotate(-2*angle,
+                                        self.main_window.rotationCenter)
+                else:
+                    self.main_window.print_log('Object not selected')
+
         widget.queue_draw()
 
     # Zoom in
@@ -298,7 +414,8 @@ class MainWindowHandler:
                         except:
                             self.main_window.print_log('failed to select object')
                         else:
-                            self.main_window.display_file[obj_id].scale(amount)
+                            self.main_window.display_file[obj_id].scale(amount,
+                                    self.main_window.rotationCenter)
                 else:
                     self.main_window.print_log('Object not selected')
 
@@ -339,7 +456,7 @@ class MainWindowHandler:
                             self.main_window.print_log('failed to select object')
                         else:
                             self.main_window.display_file[obj_id].rotate(
-                                orientation*angle)
+                                orientation*angle, self.main_window.rotationCenter)
                 else:
                     self.main_window.print_log('Object not selected')
             # re-draw objects on drawing_area
@@ -399,7 +516,6 @@ class MainWindowHandler:
         except:
             self.main_window.print_log('EXPLOSION!!!')
 
-
 # end of class Handler
 
 class MainWindow:
@@ -409,6 +525,8 @@ class MainWindow:
         self.text_view = None
         self.drawing_area = None
         self.display_file = {}
+        self.clippingAlgorithm = ClippingAlgorithm.CS
+        self.rotationCenter = RotationCenter.OBJECT
 
     def run(self):
         self.builder = Gtk.Builder()
