@@ -2,21 +2,16 @@
 [Checklist](checklist.md)
 
 ### Virtual environment
-Criar um virtual environment para rodar o projeto:
+Instalação do poetry
+
 ```
-python -m venv .venv
+PIP_NO_BUILD_ISOLATION=false
+poetry install
 ```
 
-Ativar o virtual environment antes de rodar o bot utilize o comando:
-```
-. .venv/bin/activate
-```
-Desativar o virtual environment depois de rodar o bot utilize o comando:
-```
-. .venv/bin/deactivate
-```
 
 ### Rodar o projeto
 ```
+poetry shell
 python3 -m ine5420_computacao_grafica
 ```
