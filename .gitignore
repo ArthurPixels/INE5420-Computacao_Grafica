@@ -107,3 +107,4 @@ venv.bak/
 *.glade~
 .vscode/
 .idea/
+obj_files/

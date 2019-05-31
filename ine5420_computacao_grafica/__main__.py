@@ -11,7 +11,9 @@ from ine5420_computacao_grafica.object import (
 )  # noqa: E402
 from ine5420_computacao_grafica.viewport import Viewport  # noqa: E402
 from ine5420_computacao_grafica.window import Window  # noqa: E402
+import ine5420_computacao_grafica.descriptorOBJ as descOBJ  # noqa: E402
 import math  # noqa: E402
+# import os  # noqa: E402
 
 
 # ################ Create object dialog signal handler #################
@@ -142,10 +144,12 @@ class ClippingAlgorithm:
 # ################ #################
 class MainWindowHandler:
     def __init__(self, main_window):
+        self.filepath = "obj_files/persistance.obj"
         self.main_window = main_window
         self.builder = main_window.builder
         self.store = self.builder.get_object("liststore_obj")
         self.scrolled_window = self.builder.get_object("scrolled_window_log")
+        self.lb_window_pos = self.builder.get_object("lb_window_pos")
         self.entry_step = self.builder.get_object("entry_step")
         self.entry_angle = self.builder.get_object("entry_angle")
         self.da_width = 0
@@ -159,19 +163,39 @@ class MainWindowHandler:
         Gtk.main_quit()
 
     def cb_menu_file_new(self, *args):
-        pass
+        self.main_window.display_file.clear()
+        self.store.clear()
+
+        self.window = Window(Point2D(0, 0), 0, 200, 200)
+
+        # re-draw objects on drawing_area
+        self.main_window.drawing_area.queue_draw()
 
     def cb_menu_file_open(self, *args):
-        pass
+        self.window, self.main_window.display_file = descOBJ.file_load(
+            self.filepath
+        )
+
+        # re-draw objects on drawing_area
+        self.main_window.drawing_area.queue_draw()
 
     def cb_menu_file_save(self, *args):
-        pass
+        descOBJ.file_save(
+            self.filepath, self.window, self.main_window.display_file
+        )
+        self.main_window.print_log(f'FILE SAVED: {self.filepath}')
 
     def cb_menu_file_save_as(self, *args):
         pass
 
     def cb_menu_file_quit(self, *args):
         self.main_window.gtk_window.destroy()
+
+    def cb_menu_edit_reset_window(self, *args):
+        self.window = Window(Point2D(0, 0), 0, 200, 200)
+
+        # re-draw objects on drawing_area
+        self.main_window.drawing_area.queue_draw()
 
     def cb_menu_edit_preferences(self, *args):
         self.builder.add_from_file("ine5420_computacao_grafica/ui/preferences.glade")
@@ -247,7 +271,7 @@ class MainWindowHandler:
                         model.remove(tree_iter)
 
             # re-draw objects on drawing_area
-            Gtk.Widget.queue_draw(self.builder.get_object("gtk_drawing_area"))
+            self.main_window.drawing_area.queue_draw()
         except TypeError:
             self.main_window.print_log("No object selected to be removed\n")
 
@@ -261,6 +285,9 @@ class MainWindowHandler:
         #     coords = np.matrix([[point.x, point.y, 1]])
         #
         #     return Point()
+        wx = self.window.wc.x
+        wy = self.window.wc.y
+        self.lb_window_pos.set_text(f"Window: ({wx:.2f}, {wy:.2f})")
 
         width = self.main_window.drawing_area.get_allocation().width
         height = self.main_window.drawing_area.get_allocation().height
