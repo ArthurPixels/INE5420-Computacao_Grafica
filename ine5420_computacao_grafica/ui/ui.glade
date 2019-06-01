@@ -17,6 +17,7 @@
     <property name="default_width">800</property>
     <property name="default_height">600</property>
     <signal name="destroy" handler="onMainWindowDestroy" swapped="no"/>
+    <signal name="show" handler="gtk_window_show_cb" swapped="no"/>
     <child type="titlebar">
       <placeholder/>
     </child>
@@ -124,6 +125,7 @@
                         <property name="label">gtk-justify-center</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="cb_menu_edit_reset_window" swapped="no"/>
                       </object>

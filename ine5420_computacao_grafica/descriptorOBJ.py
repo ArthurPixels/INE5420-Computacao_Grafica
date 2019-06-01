@@ -1,5 +1,5 @@
 from ine5420_computacao_grafica.object import (
-    Object,
+    # Object,
     Point2D,
     DrawablePolygon,
     DrawablePoint2D,

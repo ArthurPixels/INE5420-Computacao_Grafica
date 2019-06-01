@@ -124,6 +124,23 @@ class PreferencesWindowHandler:
         self.dialog_preferences.destroy()
 
 
+class SelectFileHandler:
+    def __init__(self, main_window, dialog_select_file):
+        self.main_window = main_window
+        self.builder = main_window.builder
+        self.dialog_select_file = dialog_select_file
+
+    def bt_cancel_select_file_clicked_cb(self, *args):
+        self.dialog_add_object.destroy()
+
+    def bt_ok_select_file_clicked_cb(self, *args):
+        filename = self.builder.get_object("entry_filepath").get_text()
+        if filename == '':
+            filename = 'persistance'
+        self.main_window.filepath = f'obj_files/{filename}.obj'
+        self.dialog_add_object.destroy()
+
+
 class MouseButtons:
     left = 1
     middle = 2
@@ -144,9 +161,9 @@ class ClippingAlgorithm:
 # ################ #################
 class MainWindowHandler:
     def __init__(self, main_window):
-        self.filepath = "obj_files/persistance.obj"
         self.main_window = main_window
         self.builder = main_window.builder
+        self.main_window.filepath = "obj_files/persistance.obj"
         self.store = self.builder.get_object("liststore_obj")
         self.scrolled_window = self.builder.get_object("scrolled_window_log")
         self.lb_window_pos = self.builder.get_object("lb_window_pos")
@@ -158,6 +175,23 @@ class MainWindowHandler:
         self.mouse_pressed = False
         self.window = Window(Point2D(0, 0), 0, 200, 200)
         self.viewport = Viewport(0, 0, 100, 100, 100, 100)
+
+    def gtk_window_show_cb(self, *args):
+        try:
+            self.window, self.main_window.display_file = descOBJ.file_load(
+                self.main_window.filepath
+            )
+        except FileNotFoundError:
+            self.main_window.print_log(f"File not found: {self.filepath}")
+        except Exception as e:
+            self.main_window.print_log(f"Exception: {e}")
+
+        for obj in self.main_window.display_file.values():
+            self.store = self.builder.get_object("liststore_obj")
+            self.store.append([obj.id, obj.name, obj.type])
+
+        # draw objects on drawing_area
+        self.main_window.drawing_area.queue_draw()
 
     def onMainWindowDestroy(self, *args):
         Gtk.main_quit()
@@ -171,9 +205,19 @@ class MainWindowHandler:
         # re-draw objects on drawing_area
         self.main_window.drawing_area.queue_draw()
 
+    def open_filepath_dialog(self):
+        self.builder.add_from_file("ine5420_computacao_grafica/ui/select_file.glade")
+        dialog_select_file = self.builder.get_object("dialog_select_file")
+        self.builder.connect_signals(
+            SelectFileHandler(self.main_window, dialog_select_file)
+        )
+        dialog_select_file.show_all()
+
     def cb_menu_file_open(self, *args):
+        self.open_filepath_dialog()
+
         self.window, self.main_window.display_file = descOBJ.file_load(
-            self.filepath
+            self.main_window.filepath
         )
 
         # re-draw objects on drawing_area
@@ -186,7 +230,8 @@ class MainWindowHandler:
         self.main_window.print_log(f'FILE SAVED: {self.filepath}')
 
     def cb_menu_file_save_as(self, *args):
-        pass
+        self.open_filepath_dialog()
+        self.cb_menu_file_save(args)
 
     def cb_menu_file_quit(self, *args):
         self.main_window.gtk_window.destroy()
@@ -505,6 +550,7 @@ class MainWindowHandler:
 
 class MainWindow:
     def __init__(self):
+        self.filepath = ''
         self.builder = None
         self.ui_obj_list = None
         self.text_view = None
