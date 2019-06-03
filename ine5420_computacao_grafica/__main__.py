@@ -70,7 +70,7 @@ class CreateObjectHandler:
 
                 if name == "":
                     name = f"Wireframe {new_id}"
-                obj = DrawablePolygon(new_id, name, pontos)
+                obj = DrawablePolygon(new_id, name, pontos, False)
 
             # end if
 
@@ -131,14 +131,14 @@ class SelectFileHandler:
         self.dialog_select_file = dialog_select_file
 
     def bt_cancel_select_file_clicked_cb(self, *args):
-        self.dialog_add_object.destroy()
+        self.dialog_select_file.destroy()
 
     def bt_ok_select_file_clicked_cb(self, *args):
         filename = self.builder.get_object("entry_filepath").get_text()
         if filename == '':
             filename = 'persistance'
-        self.main_window.filepath = f'obj_files/{filename}.obj'
-        self.dialog_add_object.destroy()
+        self.main_window.filepath = f'"obj_files/{filename}.obj"'
+        self.dialog_select_file.destroy()
 
 
 class MouseButtons:
@@ -182,7 +182,7 @@ class MainWindowHandler:
                 self.main_window.filepath
             )
         except FileNotFoundError:
-            self.main_window.print_log(f"File not found: {self.filepath}")
+            self.main_window.print_log(f"File not found: {self.main_window.filepath}")
         except Exception as e:
             self.main_window.print_log(f"Exception: {e}")
 
@@ -223,15 +223,18 @@ class MainWindowHandler:
         # re-draw objects on drawing_area
         self.main_window.drawing_area.queue_draw()
 
-    def cb_menu_file_save(self, *args):
+    def file_save(self):
         descOBJ.file_save(
-            self.filepath, self.window, self.main_window.display_file
+            self.main_window.filepath, self.window, self.main_window.display_file
         )
-        self.main_window.print_log(f'FILE SAVED: {self.filepath}')
+        self.main_window.print_log(f'FILE SAVED: {self.main_window.filepath}')
+
+    def cb_menu_file_save(self, *args):
+        self.file_save()
 
     def cb_menu_file_save_as(self, *args):
         self.open_filepath_dialog()
-        self.cb_menu_file_save(args)
+        self.file_save()
 
     def cb_menu_file_quit(self, *args):
         self.main_window.gtk_window.destroy()
