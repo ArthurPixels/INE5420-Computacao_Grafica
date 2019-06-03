@@ -13,6 +13,7 @@ from ine5420_computacao_grafica.viewport import Viewport  # noqa: E402
 from ine5420_computacao_grafica.window import Window  # noqa: E402
 import ine5420_computacao_grafica.descriptorOBJ as descOBJ  # noqa: E402
 import math  # noqa: E402
+
 # import os  # noqa: E402
 
 
@@ -125,19 +126,28 @@ class PreferencesWindowHandler:
 
 
 class SelectFileHandler:
-    def __init__(self, main_window, dialog_select_file):
+    def __init__(self, main_window, main_window_handler, load, dialog_select_file):
         self.main_window = main_window
+        self.main_window_handler = main_window_handler
         self.builder = main_window.builder
         self.dialog_select_file = dialog_select_file
+        self.load = load
 
     def bt_cancel_select_file_clicked_cb(self, *args):
+        self.main_window.save = False
         self.dialog_select_file.destroy()
 
     def bt_ok_select_file_clicked_cb(self, *args):
         filename = self.builder.get_object("entry_filepath").get_text()
-        if filename == '':
-            filename = 'persistance'
-        self.main_window.filepath = f'"obj_files/{filename}.obj"'
+        if filename == "":
+            filename = "persistance"
+        filename = str.replace(filename, "\\ ", " ")
+        self.main_window.filepath = f"obj_files/{filename}.obj"
+        self.main_window.save = True
+        if self.load:
+            self.main_window_handler.file_load()
+        else:
+            self.main_window_handler.file_save()
         self.dialog_select_file.destroy()
 
 
@@ -176,7 +186,7 @@ class MainWindowHandler:
         self.window = Window(Point2D(0, 0), 0, 200, 200)
         self.viewport = Viewport(0, 0, 100, 100, 100, 100)
 
-    def gtk_window_show_cb(self, *args):
+    def file_load(self):
         try:
             self.window, self.main_window.display_file = descOBJ.file_load(
                 self.main_window.filepath
@@ -193,6 +203,9 @@ class MainWindowHandler:
         # draw objects on drawing_area
         self.main_window.drawing_area.queue_draw()
 
+    def gtk_window_show_cb(self, *args):
+        self.file_load()
+
     def onMainWindowDestroy(self, *args):
         Gtk.main_quit()
 
@@ -205,36 +218,32 @@ class MainWindowHandler:
         # re-draw objects on drawing_area
         self.main_window.drawing_area.queue_draw()
 
-    def open_filepath_dialog(self):
+    def open_filepath_dialog(self, load):
         self.builder.add_from_file("ine5420_computacao_grafica/ui/select_file.glade")
         dialog_select_file = self.builder.get_object("dialog_select_file")
         self.builder.connect_signals(
-            SelectFileHandler(self.main_window, dialog_select_file)
+            SelectFileHandler(self.main_window, self, load, dialog_select_file)
         )
         dialog_select_file.show_all()
 
     def cb_menu_file_open(self, *args):
-        self.open_filepath_dialog()
-
-        self.window, self.main_window.display_file = descOBJ.file_load(
-            self.main_window.filepath
-        )
+        self.open_filepath_dialog(True)
 
         # re-draw objects on drawing_area
         self.main_window.drawing_area.queue_draw()
 
     def file_save(self):
-        descOBJ.file_save(
-            self.main_window.filepath, self.window, self.main_window.display_file
-        )
-        self.main_window.print_log(f'FILE SAVED: {self.main_window.filepath}')
+        if self.main_window.save:
+            descOBJ.file_save(
+                self.main_window.filepath, self.window, self.main_window.display_file
+            )
+            self.main_window.print_log(f"FILE SAVED: {self.main_window.filepath}")
 
     def cb_menu_file_save(self, *args):
         self.file_save()
 
     def cb_menu_file_save_as(self, *args):
-        self.open_filepath_dialog()
-        self.file_save()
+        self.open_filepath_dialog(False)
 
     def cb_menu_file_quit(self, *args):
         self.main_window.gtk_window.destroy()
@@ -553,7 +562,7 @@ class MainWindowHandler:
 
 class MainWindow:
     def __init__(self):
-        self.filepath = ''
+        self.filepath = ""
         self.builder = None
         self.ui_obj_list = None
         self.text_view = None
@@ -561,6 +570,7 @@ class MainWindow:
         self.display_file = {}
         self.clippingAlgorithm = ClippingAlgorithm.CS
         self.rotationCenter = RotationCenter.OBJECT
+        self.save = True
 
     def run(self):
         self.builder = Gtk.Builder()
