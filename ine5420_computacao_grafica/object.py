@@ -1,6 +1,11 @@
 from abc import abstractmethod
 from ine5420_computacao_grafica.matrixTransform import MatrixTransform2D
-from ine5420_computacao_grafica.base_forms import Point2D, Point3D, Line, Polygon
+from ine5420_computacao_grafica.base_forms import (
+        Point2D,
+        Line,
+        Polygon,
+        CurveType
+    )
 import numpy as np
 import math
 import ine5420_computacao_grafica.clip as clip
@@ -45,6 +50,7 @@ class Object:
 
 # end of class Object
 
+
 class DrawablePoint2D(Point2D, Object):
     def __init__(self, obj_id, name, x, y):
         # Object constructor
@@ -76,7 +82,7 @@ class DrawablePoint2D(Point2D, Object):
     def scale(self, amount, center):
         pass
 
-    def clip(self):
+    def clip(self, algorithm):
         pass
 # end of class DrawablePoint
 
@@ -164,7 +170,6 @@ class DrawableLine(Line, Object):
             [self.end.x, self.end.y, 1], dtype=float
         ) @ mtr.tr
 
-
     def clip(self, algorithm):
         temp = None
         if algorithm == 1:
@@ -195,33 +200,37 @@ class DrawablePolygon(Polygon, Object):
 
     # implementacao do metodo abstrato definido em Object
     def update_scn(self, transform):
-        for index, point in enumerate(self.scn):
-            [point.start.x, point.start.y, _] = np.array(
-                    ([self.points[index].start.x, self.points[index].start.y, 1]),
+        self.scn = []
+        for index, point in enumerate(self.points):
+            [vx, vy, _] = np.array(
+                    ([self.points[index].x, self.points[index].y, 1]),
                     dtype=float).dot(transform)
+            self.scn.append(Point2D(vx, vy))
 
     # implementacao do metodo abstrato definido em Object
-    def draw(self, transform_x, transform_y, cairo):
+    def draw(self, transform: np.array, cairo):
         cairo.save()
-        cairo.move_to(
-            transform_x(self.points[0].x),
-            transform_y(self.points[0].y)
-        )
+        [vx, vy, _] = np.array(
+            ([self.scn[0].x, self.scn[0].y, 1]),
+            dtype=float).dot(transform)
+        cairo.move_to(vx, vy)
         for i in range(1, len(self.points)):
-            cairo.line_to(
-                transform_x(self.points[i].x),
-                transform_y(self.points[i].y)
-            )
+            [vx, vy, _] = np.array(
+                ([self.scn[i].x, self.scn[i].y, 1]),
+                dtype=float).dot(transform)
+            cairo.line_to(vx, vy)
+            cairo.stroke()
+            cairo.move_to(vx, vy)
+        [vx, vy, _] = np.array(
+            ([self.scn[0].x, self.scn[0].y, 1]),
+            dtype=float).dot(transform)
+        cairo.line_to(vx, vy)
+        cairo.stroke()
+        # cairo.stroke_preserve()
 
-        cairo.line_to(
-            transform_x(self.points[0].x),
-            transform_y(self.points[0].y)
-        )
-        cairo.stroke_preserve()
-
-        if filled:
+        if self.filled:
             pass   # PREENCHER O POLIGONO
-        # cairo.restore()
+        cairo.restore()
 
     def get_center(self, center):
         cx = 0
@@ -237,7 +246,7 @@ class DrawablePolygon(Polygon, Object):
         elif center == 2:
             return Point2D(cx, cy)
         else:
-            return self.start
+            return self.points[0]
 
     def translate(self, vec):
         for i in range(self.points):
@@ -268,3 +277,152 @@ class DrawablePolygon(Polygon, Object):
             [point.x, point.y, _] = np.array(
                 [point.x, point.y, 1], dtype=float
             ) @ mtr.tr
+
+    def clip(self, algorithm):
+        pass
+
+
+class DrawableCurve(Polygon, Object):
+    def __init__(self, obj_id, name, points, curve_type: CurveType):
+        Object.__init__(self, obj_id, name, curve_type)
+        Polygon.__init__(self, points)
+        self.scn = []
+        self.curve_type = curve_type
+        self.bezier_matrix = np.array((
+            [-1, 3, -3, 1],
+            [3, -6, 3, 0],
+            [-3, 3, 0, 0],
+            [1, 0, 0, 0]
+        ), dtype=float)
+        self.bspline_matrix = np.array((
+            [-1, 3, -3, 1],
+            [3, -6, 3, 0],
+            [-3, 0, 3, 0],
+            [1, 4, 1, 0]
+        ), dtype=float) / 6
+
+    # implementacao do metodo abstrato definido em Object
+    def update_scn(self, transform):
+        self.scn = []
+        for index, point in enumerate(self.points):
+            [vx, vy, _] = np.array(
+                    ([self.points[index].x, self.points[index].y, 1]),
+                    dtype=float).dot(transform)
+            self.scn.append(Point2D(vx, vy))
+
+    def calc_bspline_foward(self, delta):
+        return np.array((
+                [0, 0, 0, 1],
+                [delta**3, delta**2, delta, 0],
+                [6 * (delta**3), 2 * (delta**2), 0, 0],
+                [6 * (delta**3), 0, 0, 0],
+            ), dtype=float)
+
+    # implementacao do metodo abstrato definido em Object
+    def draw(self, transform: np.array, cairo):
+        resolution = 50
+        points = []
+
+        array_x = np.array(
+            [pt.x for pt in self.scn],
+            dtype=float)
+
+        array_y = np.array(
+            [pt.y for pt in self.scn],
+            dtype=float)
+
+        if self.curve_type == CurveType.bezier:
+            for section in range(0, len(self.scn) - 1, 3):
+                for delta in np.linspace(0, 1, resolution):
+                    T = np.array(
+                        [delta**3, delta**2, delta, 1], dtype=float)
+                    TM = T @ self.bezier_matrix
+                    x = TM @ array_x[section:section + 4]
+                    y = TM @ array_y[section:section + 4]
+                    points.append(Point2D(x, y))
+
+        elif self.curve_type == CurveType.b_spline:
+            for i in range(0, len(self.scn) - 3):
+                Gx = array_x[i:i + 4]
+                Gy = array_y[i:i + 4]
+                Cx = self.bspline_matrix @ Gx
+                Cy = self.bspline_matrix @ Gy
+
+                E = self.calc_bspline_foward(1.0 / resolution)
+                Dx = E @ Cx
+                Dy = E @ Cy
+
+                for _ in range(resolution + 1):
+                    x = Dx[0]
+                    y = Dy[0]
+
+                    Dx = Dx + np.append(Dx[1:], 0)
+                    Dy = Dy + np.append(Dy[1:], 0)
+
+                    points.append(Point2D(x, y))
+
+        cairo.save()
+        [vx, vy, _] = np.array(
+            ([points[0].x, points[0].y, 1]),
+            dtype=float).dot(transform)
+        cairo.move_to(vx, vy)
+        for i in range(1, len(points) - 1):
+            x = points[i].x
+            y = points[i].y
+            [vx, vy, _] = np.array(
+                ([x, y, 1]),
+                dtype=float).dot(transform)
+            if -1 <= x and x <= 1 and -1 <= y and y <= 1:
+                cairo.line_to(vx, vy)
+                cairo.stroke()
+            cairo.move_to(vx, vy)
+        cairo.restore()
+
+    def get_center(self, center):
+        cx = 0
+        cy = 0
+        for point in self.points:
+            cx += point.x
+            cy += point.y
+        cx /= len(self.points)
+        cy /= len(self.points)
+
+        if center == 1:
+            return Point2D(0, 0)
+        elif center == 2:
+            return Point2D(cx, cy)
+        else:
+            return self.points[0]
+
+    def translate(self, vec):
+        for i in range(self.points):
+            self.points[i].x += vec.x
+            self.points[i].y += vec.y
+
+    def rotate(self, angle, ctr):
+        center = self.get_center(ctr)
+        mtr = MatrixTransform2D()
+        mtr.translate(-center.x, -center.y)
+        mtr.rotate(angle)
+        mtr.translate(center.x, center.y)
+
+        for point in self.points:
+            [point.x, point.y, _] = np.array(
+                [point.x, point.y, 1], dtype=float
+            ) @ mtr.tr
+
+    def scale(self, amount, ctr):
+        center = self.get_center(ctr)
+
+        mtr = MatrixTransform2D()
+        mtr.translate(-center.x, -center.y)
+        mtr.scale(amount, amount)
+        mtr.translate(center.x, center.y)
+
+        for point in self.points:
+            [point.x, point.y, _] = np.array(
+                [point.x, point.y, 1], dtype=float
+            ) @ mtr.tr
+
+    def clip(self, algorithm):
+        pass

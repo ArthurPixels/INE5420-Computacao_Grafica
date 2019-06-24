@@ -3,11 +3,12 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk  # noqa: E402
+from ine5420_computacao_grafica.base_forms import Point2D, CurveType  # noqa: E402
 from ine5420_computacao_grafica.object import (
-    Point2D,
     DrawablePolygon,
     DrawablePoint2D,
     DrawableLine,
+    DrawableCurve
 )  # noqa: E402
 from ine5420_computacao_grafica.viewport import Viewport  # noqa: E402
 from ine5420_computacao_grafica.window import Window  # noqa: E402
@@ -73,6 +74,30 @@ class CreateObjectHandler:
                     name = f"Wireframe {new_id}"
                 obj = DrawablePolygon(new_id, name, pontos, False)
 
+            # add curve
+            elif page == 3:
+                curve_type = None
+                if self.builder.get_object("rdb_bezier").get_active():
+                    if name == "":
+                        name = f"Bezier {new_id}"
+                    curve_type = CurveType.bezier
+                else:
+                    if name == "":
+                        name = f"B-spline {new_id}"
+                    curve_type = CurveType.b_spline
+
+                buffer = self.builder.get_object("curve_points_view").get_buffer()
+                start_iter = buffer.get_start_iter()
+                end_iter = buffer.get_end_iter()
+                entrada = buffer.get_text(start_iter, end_iter, False)
+                entrada = entrada.split("\n")
+
+                pontos = []
+                for i in range(len(entrada)):
+                    x, y = entrada[i].split()
+                    pontos.append(Point2D(float(x), float(y)))
+
+                obj = DrawableCurve(new_id, name, pontos, curve_type)
             # end if
 
             if name == "":
@@ -278,7 +303,7 @@ class MainWindowHandler:
     # trata dos eventos que seguem a um clique sobre a object_list
     def obj_list_clicked_cb(self, widget, event):
         # clique com o botao direito
-        if event.button == 3:
+        if event.button == MouseButtons.right:
             self.builder.get_object("obj_list_popup_menu").popup_at_pointer(None)
 
     # "add object" option selected from obj_list_popup_menu
