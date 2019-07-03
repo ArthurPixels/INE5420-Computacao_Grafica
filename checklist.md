@@ -26,9 +26,9 @@
     [x] Atualize a interface da aplicação para que o usuário possa rotacionar a window também. Como a rotação é sempre ao redor do centro da window, basta um campo para colocar o ângulo de rotação.
 
 
-    [ ] Crie uma classe DescritorOBJ capaz de transcrever um objeto gráfico para o formato .obj, tomando seu nome, seu tipo, seus vértices e suas arestas.
+    [x] Crie uma classe DescritorOBJ capaz de transcrever um objeto gráfico para o formato .obj, tomando seu nome, seu tipo, seus vértices e suas arestas.
 
-    [ ] Chame o descritor para cada objeto de seu mundo.
+    [x] Chame o descritor para cada objeto de seu mundo.
     Assim você só precisa se preocupar com o cabeçalho do .obj. O resto de se resove através de um percurso do display file com seu descritor.
 
 ### 1.4
@@ -47,22 +47,22 @@
     [ ] Implemente o clipping de polígonos preenchidos com o algoritmo de Weiler-Atherton. Para simplificar, considere apenas polígonos sem furos (mas possivelmente côncavos).
 
 ### 1.5
-    [ ] Crie uma Classe Curva2D
+    [x] Crie uma Classe Curva2D
 
-    [ ] A curva deverá utilizar funções de suavização (blending functions) para se mostrar.
+    [x] A curva deverá utilizar funções de suavização (blending functions) para se mostrar.
 
-    [ ] Um objeto Curva2D poderá conter uma ou mais curvas com continuidade no mínimo G(0).
+    [x] Um objeto Curva2D poderá conter uma ou mais curvas com continuidade no mínimo G(0).
 
-    [ ] Crie uma interface para entrar com estes dados.
+    [x] Crie uma interface para entrar com estes dados.
 
-    [ ] Implemente o Clipping para esta curva utilizando o método descrito em aula (e nas transparências)
+    [x] Implemente o Clipping para esta curva utilizando o método descrito em aula (e nas transparências)
 
 ### 1.6
-    [ ] Além de Hermite/Bezier, implemente também B-Splines com Forward Differences. Para tanto estenda a sua Curva2D.
+    [x] Além de Hermite/Bezier, implemente também B-Splines com Forward Differences. Para tanto estenda a sua Curva2D.
 
-    [ ] Deve ser possível ao usuário entrar com quantos pontos de controle desejar, com um mínimo de n = 4.
+    [x] Deve ser possível ao usuário entrar com quantos pontos de controle desejar, com um mínimo de n = 4.
 
-    [ ] Devem ser desenhadas m = n - 3 curvas b-spline, utilizando-se todos os pontos, 4 a 4.
+    [x] Devem ser desenhadas m = n - 3 curvas b-spline, utilizando-se todos os pontos, 4 a 4.
 
 ### 1.7
 

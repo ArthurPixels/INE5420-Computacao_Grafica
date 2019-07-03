@@ -17,11 +17,13 @@ class Point2D:
 
 # end of class Point
 
+
 class Point3D:
     def __init__(self, x: float, y: float, z: float):
         self.x = x
         self.y = y
         self.z = z
+
 
 # classe que define uma linha basica dentro do universo de representacao
 class Line:
@@ -35,5 +37,10 @@ class Line:
 class Polygon:
     def __init__(self, points):
         self.points = points
-
 # end of class Polygon
+
+
+class CurveType:
+    bezier = "Bezier"
+    b_spline = "B-Spline"
+# end of class CurveType

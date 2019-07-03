@@ -1,6 +1,11 @@
 from abc import abstractmethod
 from ine5420_computacao_grafica.matrixTransform import MatrixTransform2D
-from ine5420_computacao_grafica.base_forms import Point2D, Point3D, Line, Polygon
+from ine5420_computacao_grafica.base_forms import (
+        Point2D,
+        Line,
+        Polygon,
+        CurveType
+    )
 import numpy as np
 import math
 import ine5420_computacao_grafica.clip as clip
@@ -45,6 +50,7 @@ class Object:
 
 # end of class Object
 
+
 class DrawablePoint2D(Point2D, Object):
     def __init__(self, obj_id, name, x, y):
         # Object constructor
@@ -77,9 +83,7 @@ class DrawablePoint2D(Point2D, Object):
         pass
 
     def clip(self, algorithm = None):
-        temp = clip.pointClip(Point2D(self.nx, self.ny))
-
-        if temp:
+        if clip.pointClip(Point2D(self.nx, self.ny)):
             self.visible = True
         else:
             self.visible = False
@@ -170,7 +174,6 @@ class DrawableLine(Line, Object):
             [self.end.x, self.end.y, 1], dtype=float
         ) @ mtr.tr
 
-
     def clip(self, algorithm):
         temp = None
         if algorithm == 1:
@@ -247,7 +250,7 @@ class DrawablePolygon(Polygon, Object):
         elif center == 2:
             return Point2D(cx, cy)
         else:
-            return self.start
+            return self.points[0]
 
     def translate(self, vec):
         for i in range(self.points):
@@ -278,6 +281,3 @@ class DrawablePolygon(Polygon, Object):
             [point.x, point.y, _] = np.array(
                 [point.x, point.y, 1], dtype=float
             ) @ mtr.tr
-
-    def clip(self, algorithm = None):
-        temp = clip.weilerAthertonPolygonClip(Polygon(self.scn))

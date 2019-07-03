@@ -38,7 +38,7 @@ def cohenSutherlandClip(line: Line):
     codeP0 = computeOutCode(p0, -1, -1, 1, 1)
     codeP1 = computeOutCode(p1, -1, -1, 1, 1)
 
-    if not(codeP0 | codeP1):
+    if not (codeP0 | codeP1):
         # TOTALMENTE CONTIDA
         return line
     elif (codeP0 & codeP1):
@@ -63,7 +63,7 @@ def cohenSutherlandClip(line: Line):
         if p0 and codeP1:
             p1 = calculateCSInterception(p1, codeP1, m, -1, 1, -1, 1)
 
-        if not(p0) or not(p1):
+        if not (p0) or not (p1):
             return None
         else:
             return Line(p0, p1)
@@ -74,13 +74,13 @@ def calculateCSInterception(p: Point2D, regionCode, m, xe, xd, yf, yt):
     new_y = None
     new_x = None
 
-    if regionCode & 1: # LEFT
+    if regionCode & 1:  # LEFT
         new_x = xe
         new_y = m * (xe - p.x) + p.y
         if new_y <= yt and new_y >= yf:
             return Point2D(new_x, new_y)
 
-    if regionCode & 2: # RIGHT
+    if regionCode & 2:  # RIGHT
         new_x = xd
         new_y = m * (xd - p.x) + p.y
         if new_y <= yt and new_y >= yf:
@@ -98,14 +98,14 @@ def calculateCSInterception(p: Point2D, regionCode, m, xe, xd, yf, yt):
         return Point2D(new_x, new_y)
 
 
-####################### NICHOLL-LEE-NICHOLL 2D Line Clipping #################################
+# ################### NICHOLL-LEE-NICHOLL 2D Line Clipping ###########################
 # returns the type of region of a point in the plan
 def getAngularCoeficients(p1: Point2D, p2: Point2D):
-    TL = float(1-p1.y) / float(-1-p1.x)
-    TR = float(1-p1.y) / float(1-p1.x)
-    BR = float(-1-p1.y) / float(1-p1.x)
-    BL = float(-1-p1.y) / float(-1-p1.x)
-    M = float(p2.y-p1.y) / float(p2.x-p1.x)
+    TL = float(1 - p1.y) / float(-1 - p1.x)
+    TR = float(1 - p1.y) / float(1 - p1.x)
+    BR = float(-1 - p1.y) / float(1 - p1.x)
+    BL = float(-1 - p1.y) / float(-1 - p1.x)
+    M = float(p2.y - p1.y) / float(p2.x - p1.x)
 
     return TL, TR, BR, BL, M
 
@@ -117,31 +117,31 @@ def clipCenter(start_point: Point2D, end_point: Point2D):
 
     TL, TR, BR, BL, M = getAngularCoeficients(start_point, end_point)
 
-    if (end_point.x > start_point.x):  # P2 is at the right of P1
+    if end_point.x > start_point.x:  # P2 is at the right of P1
         if M >= TR:  # TOP BORDER
             y2 = 1
-            x2 = (y2-y1) / M + x1
+            x2 = (y2 - y1) / M + x1
 
         elif BR <= M and M < TR:  # RIGHT BORDER
             x2 = 1
-            y2 = (x2-x1) * M + y1
+            y2 = (x2 - x1) * M + y1
 
         elif M < BR:  # BOTTOM BORDER
             y2 = -1
-            x2 = (y2-y1) / M + x1
+            x2 = (y2 - y1) / M + x1
 
     else:
         if M < TL:  # TOP BORDER
             y2 = 1
-            x2 = (y2-y1) / M + x1
+            x2 = (y2 - y1) / M + x1
 
         elif TL <= M and M < BL:  # LEFT BORDER
             x2 = -1
-            y2 = M * (x2-x1) + y1
+            y2 = M * (x2 - x1) + y1
 
         elif M >= BL:  # BOTTOM BORDER
             y2 = -1
-            x2 = (y2-y1) / M + x1
+            x2 = (y2 - y1) / M + x1
 
     return Line(Point2D(x1, y1), Point2D(x2, y2))
 
@@ -160,17 +160,17 @@ def clipEdge(start_point: Point2D, end_point: Point2D):
     if M > TR:  # LEFT or TOP-LEFT
         if end_point.y >= 1:  # intercepts the TOP border too
             y2 = 1
-            x2 = (y2-y1) / M + x1
+            x2 = (y2 - y1) / M + x1
 
     elif M <= BR:  # LEFT or BOTTOM-LEFT
         if end_point.y <= -1:  # intercepts the BOTTOM border too
             y2 = -1
-            x2 = (y2-y1) / M + x1
+            x2 = (y2 - y1) / M + x1
 
     else:  # LEFT or LEFT-RIGHT
         if end_point.x >= 1:  # intercepts the RIGHT border too
             x2 = 1
-            y2 = (x2-x1) * M + y1
+            y2 = (x2 - x1) * M + y1
 
     return Line(Point2D(x1, y1), Point2D(x2, y2))
 
@@ -189,7 +189,7 @@ def clipCorner(start_point: Point2D, end_point: Point2D):
 
             if end_point.y <= -1:  # intercepts BOTTOM border too
                 y2 = -1
-                x2 = (y2-y1) / M + x1
+                x2 = (y2 - y1) / M + x1
 
         else:
             y1 = 1
@@ -198,12 +198,12 @@ def clipCorner(start_point: Point2D, end_point: Point2D):
             if M >= BR:  # TOP or TOP-RIGHT
                 if end_point.x >= 1:
                     x2 = 1
-                    y2 = (x2-x1) * M + y1
+                    y2 = (x2 - x1) * M + y1
 
             else:  # TOP or TOP-BOTTOM
                 if end_point.y <= -1:
                     y2 = -1
-                    x2 = (y2-y1) / M + x1
+                    x2 = (y2 - y1) / M + x1
 
     else:  # case 2 (predominantly right)
         if M >= TL:  # TOP or TOP-RIGHT
@@ -212,7 +212,7 @@ def clipCorner(start_point: Point2D, end_point: Point2D):
 
             if end_point.x >= 1:
                 x2 = 1
-                y2 = (x2-x1) * M + y1
+                y2 = (x2 - x1) * M + y1
 
         else:
             x1 = -1
@@ -221,13 +221,12 @@ def clipCorner(start_point: Point2D, end_point: Point2D):
             if M <= BR:  # LEFT or LEFT-BOTTOM
                 if end_point.y <= -1:  # intercepts BOTTOM border too
                     y2 = -1
-                    x2 = (y2-y1) / M + x1
+                    x2 = (y2 - y1) / M + x1
 
             else:  # LEFT or LEFT-RIGHT
                 if end_point.x >= 1:  # intercepts the RIGHT border too
                     x2 = 1
-                    y2 = (x2-x1) * M + y1
-
+                    y2 = (x2 - x1) * M + y1
 
     return Line(Point2D(x1, y1), Point2D(x2, y2))
 
@@ -242,7 +241,7 @@ def nichollLeeNichollClip(line: Line):
 
     if (codeP1 | codeP2) == 0:  # trivially accepted
         return line
-    elif (codeP1 & codeP2) > 0: # trivially rejected
+    elif (codeP1 & codeP2) > 0:  # trivially rejected
         return None
 
     if p1.x == p2.x:  # to prevent division by zero error
@@ -261,7 +260,6 @@ def nichollLeeNichollClip(line: Line):
             y2 = -1
 
         return Line(Point2D(x1, y1), Point2D(x2, y2))
-
 
     if codeP1 == 0:  # CENTER
         clipped = clipCenter(p1, p2)
