@@ -40,7 +40,7 @@ class Object:
         pass
 
     @abstractmethod
-    def clip(self):
+    def clip(self, algorithm = None):
         pass
 
 # end of class Object
@@ -76,8 +76,14 @@ class DrawablePoint2D(Point2D, Object):
     def scale(self, amount, center):
         pass
 
-    def clip(self):
-        pass
+    def clip(self, algorithm = None):
+        temp = clip.pointClip(Point2D(self.nx, self.ny))
+
+        if temp:
+            self.visible = True
+        else:
+            self.visible = False
+
 # end of class DrawablePoint
 
 
@@ -168,13 +174,9 @@ class DrawableLine(Line, Object):
     def clip(self, algorithm):
         temp = None
         if algorithm == 1:
-            temp = clip.cohenSutherlandClip(
-                self.scn.start.x, self.scn.start.y, self.scn.end.x, self.scn.end.y
-            )
+            temp = clip.cohenSutherlandClip(Line(self.scn.start, self.scn.end))
         elif algorithm == 2:
-            temp = clip.nichollLeeNichollClip(self, Line(
-                Point2D(self.scn.start.x, self.scn.start.y),
-                Point2D(self.scn.end.x, self.scn.end.y)))
+            temp = clip.nichollLeeNichollClip(Line(self.scn.start, self.scn.end))
         else:
             print("Invalid Clipping Algorithm")
         if temp:
@@ -195,33 +197,41 @@ class DrawablePolygon(Polygon, Object):
 
     # implementacao do metodo abstrato definido em Object
     def update_scn(self, transform):
-        for index, point in enumerate(self.scn):
-            [point.start.x, point.start.y, _] = np.array(
-                    ([self.points[index].start.x, self.points[index].start.y, 1]),
+        self.scn = []
+        for index, point in enumerate(self.points):
+            [vx, vy, _] = np.array(
+                    ([self.points[index].x, self.points[index].y, 1]),
                     dtype=float).dot(transform)
+            self.scn.append(Point2D(vx, vy))
 
     # implementacao do metodo abstrato definido em Object
-    def draw(self, transform_x, transform_y, cairo):
+    def draw(self, transform: np.array, cairo):
         cairo.save()
-        cairo.move_to(
-            transform_x(self.points[0].x),
-            transform_y(self.points[0].y)
-        )
+        [vx, vy, _] = np.array(
+            ([self.scn[0].x, self.scn[0].y, 1]),
+            dtype=float).dot(transform)
+        cairo.move_to(vx, vy)
         for i in range(1, len(self.points)):
-            cairo.line_to(
-                transform_x(self.points[i].x),
-                transform_y(self.points[i].y)
-            )
+            [vx, vy, _] = np.array(
+                ([self.scn[i].x, self.scn[i].y, 1]),
+                dtype=float).dot(transform)
+            cairo.line_to(vx, vy)
+            cairo.stroke()
+            cairo.move_to(vx, vy)
+        [vx, vy, _] = np.array(
+            ([self.scn[0].x, self.scn[0].y, 1]),
+            dtype=float).dot(transform)
+        cairo.line_to(vx, vy)
+        cairo.stroke()
+        # cairo.stroke_preserve()
 
-        cairo.line_to(
-            transform_x(self.points[0].x),
-            transform_y(self.points[0].y)
-        )
-        cairo.stroke_preserve()
-
-        if filled:
+        if self.filled:
             pass   # PREENCHER O POLIGONO
-        # cairo.restore()
+
+        clip.weilerAthertonPolygonClip(Polygon(self.scn))
+
+        cairo.restore()
+
 
     def get_center(self, center):
         cx = 0
@@ -268,3 +278,6 @@ class DrawablePolygon(Polygon, Object):
             [point.x, point.y, _] = np.array(
                 [point.x, point.y, 1], dtype=float
             ) @ mtr.tr
+
+    def clip(self, algorithm = None):
+        temp = clip.weilerAthertonPolygonClip(Polygon(self.scn))

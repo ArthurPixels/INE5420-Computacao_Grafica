@@ -5,7 +5,7 @@ description = ""
 authors = ["Arthur Mesquita Pickcius <arthur.pickcius@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.6"
 pygobject = "^3.32"
 numpy = "^1.16"
 
