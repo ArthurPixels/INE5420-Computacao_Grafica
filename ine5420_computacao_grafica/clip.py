@@ -509,8 +509,10 @@ def weilerAthertonPolygonClip(polygon: Polygon):
             # end of visits
     # END FOR
 
-    for polygon in visible:
-        for point in polygon:
-            print(point)
-        print("-------------------------")
-    print()
+    return visible
+
+    # for polygon in visible:
+    #     for point in polygon:
+    #         print(point)
+    #     print("-------------------------")
+    # print()
