@@ -43,7 +43,6 @@ def encode(window: Window, display_file: dict):
             for i, vertex in enumerate(obj.points):
                 vertices += f"v {encode_point2d(vertex)}\n"
                 obj_vertex_id += f"{vertex_id + i} "
-            obj_vertex_id += f"{vertex_id}"
 
             if obj.filled:
                 objects += f"usemtl filled\n"

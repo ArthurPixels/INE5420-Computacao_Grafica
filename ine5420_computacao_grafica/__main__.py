@@ -64,6 +64,7 @@ class CreateObjectHandler:
                 end_iter = buffer.get_end_iter()
                 entrada = buffer.get_text(start_iter, end_iter, False)
                 entrada = entrada.split("\n")
+                filled = self.builder.get_object("filled_check").get_active()
 
                 pontos = []
                 for i in range(len(entrada)):
@@ -72,7 +73,7 @@ class CreateObjectHandler:
 
                 if name == "":
                     name = f"Wireframe {new_id}"
-                obj = DrawablePolygon(new_id, name, pontos, False)
+                obj = DrawablePolygon(new_id, name, pontos, filled)
 
             # add curve
             elif page == 3:

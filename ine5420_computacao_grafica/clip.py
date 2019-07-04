@@ -397,15 +397,15 @@ def markUnvisited(lista: list):
 # 2 : OUT
 ######################
 def weilerAthertonPolygonClip(polygon: Polygon):
-    polygon = Polygon([Point2D(-2,0.75),
-                        Point2D(-2,-0.75),
-                        Point2D(0,-0.75),
-                        Point2D(0,-0.25),
-                        Point2D(-1.5,-0.25),
-                        Point2D(-1.5,0.25),
-                        Point2D(0,0.25),
-                        Point2D(0,0.75)
-                        ])  # REMOVER
+    # polygon = Polygon([Point2D(-2,0.75),
+    #                     Point2D(-2,-0.75),
+    #                     Point2D(0,-0.75),
+    #                     Point2D(0,-0.25),
+    #                     Point2D(-1.5,-0.25),
+    #                     Point2D(-1.5,0.25),
+    #                     Point2D(0,0.25),
+    #                     Point2D(0,0.75)
+    #                     ])  # REMOVER
     points = getOrderedPoints(polygon)
 
     # lista todas interseções
@@ -508,8 +508,10 @@ def weilerAthertonPolygonClip(polygon: Polygon):
 
             # end of visits
     # END FOR
-
-    return visible
+    if len(visible):
+        return visible
+    else:
+        return None
 
     # for polygon in visible:
     #     for point in polygon:

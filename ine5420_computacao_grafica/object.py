@@ -216,24 +216,25 @@ class DrawablePolygon(Polygon, Object):
                 ([self.scn[polygon][0].x, self.scn[polygon][0].y, 1]),
                 dtype=float).dot(transform)
             cairo.move_to(vx, vy)
-            for i in range(1, len(self.points)):
+
+            for i in range(1, len(self.scn[polygon])):
                 [vx, vy, _] = np.array(
                     ([self.scn[polygon][i].x, self.scn[polygon][i].y, 1]),
                     dtype=float).dot(transform)
                 cairo.line_to(vx, vy)
-                cairo.stroke()
-                cairo.move_to(vx, vy)
+
             [vx, vy, _] = np.array(
                 ([self.scn[polygon][0].x, self.scn[polygon][0].y, 1]),
                 dtype=float).dot(transform)
             cairo.line_to(vx, vy)
-            cairo.stroke()
-            # cairo.stroke_preserve()
 
             if self.filled:
-                pass   # PREENCHER O POLIGONO
+                cairo.fill()
+            else:
+                cairo.stroke()
 
             cairo.restore()
+
 
     def get_center(self, center):
         cx = 0
@@ -252,9 +253,9 @@ class DrawablePolygon(Polygon, Object):
             return self.points[0]
 
     def translate(self, vec):
-        for i in range(self.points):
-            self.points[i].x += vec.x
-            self.points[i].y += vec.y
+        for point in self.points:
+            point.x += vec.x
+            point.y += vec.y
 
     def rotate(self, angle, ctr):
         center = self.get_center(ctr)
@@ -282,7 +283,13 @@ class DrawablePolygon(Polygon, Object):
             ) @ mtr.tr
 
     def clip(self, algorithm):
-        self.scn = clip.weilerAthertonPolygonClip(Polygon(self.scn[0]))
+        temp = clip.weilerAthertonPolygonClip(Polygon(self.scn[0]))
+
+        if temp:
+            self.scn = temp
+            self.visible = True
+        else:
+            self.visible = False
 
 
 class DrawableCurve(Polygon, Object):
