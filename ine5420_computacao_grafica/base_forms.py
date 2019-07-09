@@ -3,10 +3,10 @@ DELTA = 0.000001
 
 # classe que define um ponto basico no universo de representacao
 class Point2D:
-    def __init__(self, x: float, y: float, type=0):
+    def __init__(self, x: float, y: float, type=None):
         self.x = x
         self.y = y
-        self.type = type
+        self.pType = type
         self.visited = False
 
     def __str__(self):

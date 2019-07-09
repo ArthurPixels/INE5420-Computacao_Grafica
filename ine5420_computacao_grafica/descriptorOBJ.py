@@ -4,6 +4,8 @@ from ine5420_computacao_grafica.object import (
     DrawablePolygon,
     DrawablePoint2D,
     DrawableLine,
+    DrawableCurve,
+    CurveType
 )
 
 from ine5420_computacao_grafica.window import Window
@@ -28,7 +30,7 @@ def encode(window: Window, display_file: dict):
         objects += f"o {obj.name}\n"
 
         if isinstance(obj, DrawablePoint2D):
-            vertices += f"v {encode_point2d(obj.pos)}\n"
+            vertices += f"v {encode_point2d(Point2D(obj.x, obj.y))}\n"
 
             objects += f"p {vertex_id}\n"
             vertex_id += 1
@@ -42,11 +44,27 @@ def encode(window: Window, display_file: dict):
             obj_vertex_id = ""
             for i, vertex in enumerate(obj.points):
                 vertices += f"v {encode_point2d(vertex)}\n"
-                obj_vertex_id += f"{vertex_id + i} "
+                obj_vertex_id += f" {vertex_id + i}"
 
             if obj.filled:
                 objects += f"usemtl filled\n"
-            objects += f"l {obj_vertex_id}\n"
+            objects += f"f{obj_vertex_id}\n"
+            vertex_id += len(obj.points)
+
+        elif isinstance(obj, DrawableCurve):
+            cstype = "cstype "
+            if obj.curve_type == CurveType.bezier:
+                cstype += "bezier"
+            else:  # b-spline
+                cstype += "bspline"
+
+            obj_vertex_id = ""
+            for i, vertex in enumerate(obj.points):
+                vertices += f"v {encode_point2d(vertex)}\n"
+                obj_vertex_id += f" {vertex_id + i}"
+
+            objects += cstype + "\n"
+            objects += f"curv2{obj_vertex_id}\n"
             vertex_id += len(obj.points)
 
     return vertices + objects
@@ -71,8 +89,8 @@ def decode(text):
         elif cmd == "o":
             obj_name = " ".join(args)
         elif cmd == "usemtl":
-            if args[0] == "texture":
-                filled = True
+            # if args[0] == "texture":
+            filled = True
         elif cmd == "p":
             display_file[obj_id] = DrawablePoint2D(
                 obj_id, obj_name, vertices[int(args[0])].x, vertices[int(args[0])].y
@@ -83,12 +101,21 @@ def decode(text):
                 display_file[obj_id] = DrawableLine(
                     obj_id, obj_name, vertices[int(args[0])], vertices[int(args[1])]
                 )
-            else:
-                display_file[obj_id] = DrawablePolygon(
-                    obj_id, obj_name, [vertices[int(i)] for i in args[:]], filled
-                )
+            obj_id += 1
+        elif cmd == "f":
+            display_file[obj_id] = DrawablePolygon(
+                obj_id, obj_name, [vertices[int(i)] for i in args], filled
+            )
             obj_id += 1
             filled = False
+        elif cmd == "cstype":
+            curvtype = args[0]
+        elif cmd == "curv2":
+            if curvtype == "bezier":
+                display_file[obj_id] = DrawableCurve(obj_id, obj_name, [vertices[int(i)] for i in args], CurveType.bezier)
+            else:
+                display_file[obj_id] = DrawableCurve(obj_id, obj_name, [vertices[int(i)] for i in args], CurveType.b_spline)
+            obj_id += 1
     return window, display_file
 
 

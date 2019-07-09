@@ -107,7 +107,7 @@ class CreateObjectHandler:
             self.main_window.display_file[obj.id] = obj
 
             store = self.builder.get_object("liststore_obj")
-            store.append([new_id, obj.name, obj.type])
+            store.append([obj.id, obj.name, obj.type])
 
             da = self.builder.get_object("gtk_drawing_area")
             da.draw(da.get_window().cairo_create())

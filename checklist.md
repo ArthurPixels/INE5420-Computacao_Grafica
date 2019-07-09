@@ -6,7 +6,7 @@
     [x] Cada objeto possui um tipo
     [x] Cada objeto possui sua lista de coordenadas
     [x] Funções de navegação 2D (movimentação do window)
-    [] Funções de Zoom (modificação do tamanho do window)
+    [x] Funções de Zoom (modificação do tamanho do window)
 
 ### 1.2
     [x] Translações
@@ -40,7 +40,7 @@
 
     [x] Faça sua Viewport ser menor do que o objeto de desenho da linguagem de programação, com uma moldura ao seu redor. Isto facilita na visualização do clipping e na detecção de erros (como visto nas transparências, link).
 
-    [] Implemente o clipping de pontos, retas e polígonos wireframe utilizando um dos 3 algoritmos de clipping de retas vistos em aula.
+    [x] Implemente o clipping de pontos, retas e polígonos wireframe utilizando um dos 3 algoritmos de clipping de retas vistos em aula.
 
     [x] Estenda seu SGI para suportar polígonos preenchidos, utilizando as primitivas de preenchimento da sua linguagem de programação. O usuário escolhe se o polígono é em modelo de arame ou preenchido no momento de sua criação.
 

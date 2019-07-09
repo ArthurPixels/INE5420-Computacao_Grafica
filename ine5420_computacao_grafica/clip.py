@@ -425,18 +425,18 @@ def weilerAthertonPolygonClip(polygon: Polygon):
             if t1:
                 if not t2:
                     np = line.end
-                    np.type = 2
+                    np.pType = 2
                     insertPoint(points, np, i+1)
             else:
                 if t2:
                     np = line.start
-                    np.type = 1
+                    np.pType = 1
                     insertPoint(points, np, i+1)
                 else:
                     np1 = line.start
                     np2 = line.end
-                    np1.type = 1
-                    np2.type = 2
+                    np1.pType = 1
+                    np2.pType = 2
                     insertPoint(points, np1, i+1)
                     insertPoint(points, np2, i+2)
                     i+=1
@@ -494,10 +494,10 @@ def weilerAthertonPolygonClip(polygon: Polygon):
                     visible[-1].append(point)
 
                 # DEFINING NEXT LIST
-                if point.type == 1:  # INCOMING
+                if point.pType == 1:  # INCOMING
                     l = 1
                     index = (points.index(point)+1)
-                elif point.type == 2:  # OUTGOING
+                elif point.pType == 2:  # OUTGOING
                     l = 2
                     index = (clipping.index(point)+1)
                 else:
