@@ -157,6 +157,9 @@ def clipEdge(start_point: Point2D, end_point: Point2D):
     x1 = -1
     y1 = end_point.y - M * (end_point.x - x1)
 
+    if M >= TL or M < BL:
+        return None
+
     if M > TR:  # LEFT or TOP-LEFT
         if end_point.y >= 1:  # intercepts the TOP border too
             y2 = 1
@@ -181,6 +184,9 @@ def clipCorner(start_point: Point2D, end_point: Point2D):
     y2 = end_point.y
 
     TL, TR, BR, BL, M = getAngularCoeficients(start_point, end_point)
+
+    if M >= TR or M <= BL:
+        return None
 
     if TL < BR:  # case 1 (predominantly bottom)
         if M < TL:  # LEFT or LEFT-BOTTOM
@@ -271,48 +277,53 @@ def nichollLeeNichollClip(line: Line):
         p1_aux = Point2D(-p1.x, p1.y)
         p2_aux = Point2D(-p2.x, p2.y)
         clipped = clipEdge(p1_aux, p2_aux)
-        clipped.start.x *= -1
-        clipped.end.x *= -1
+        if clipped:
+            clipped.start.x *= -1
+            clipped.end.x *= -1
 
     elif codeP1 == 4:  # BOTTOM (y, x)
         p1_aux = Point2D(p1.y, p1.x)
         p2_aux = Point2D(p2.y, p2.x)
         clipped = clipEdge(p1_aux, p2_aux)
 
-        temp = clipped.start.x
-        clipped.start.x = clipped.start.y
-        clipped.start.y = temp
-        temp = clipped.end.x
-        clipped.end.x = clipped.end.y
-        clipped.end.y = temp
+        if clipped:
+            temp = clipped.start.x
+            clipped.start.x = clipped.start.y
+            clipped.start.y = temp
+            temp = clipped.end.x
+            clipped.end.x = clipped.end.y
+            clipped.end.y = temp
 
     elif codeP1 == 8:  # TOP (-y, x)
         p1_aux = Point2D(-p1.y, p1.x)
         p2_aux = Point2D(-p2.y, p2.x)
         clipped = clipEdge(p1_aux, p2_aux)
 
-        temp = clipped.start.x
-        clipped.start.x = clipped.start.y
-        clipped.start.y = -temp
-        temp = clipped.end.x
-        clipped.end.x = clipped.end.y
-        clipped.end.y = -temp
+        if clipped:
+            temp = clipped.start.x
+            clipped.start.x = clipped.start.y
+            clipped.start.y = -temp
+            temp = clipped.end.x
+            clipped.end.x = clipped.end.y
+            clipped.end.y = -temp
 
     elif codeP1 == 5:  # LEFT-BOTTOM (x, -y)
         p1_aux = Point2D(p1.x, -p1.y)
         p2_aux = Point2D(p2.x, -p2.y)
         clipped = clipCorner(p1_aux, p2_aux)
-        clipped.start.y *= -1
-        clipped.end.y *= -1
+        if clipped:
+            clipped.start.y *= -1
+            clipped.end.y *= -1
 
     elif codeP1 == 6:  # RIGHT-BOTTOM (-x, -y)
         p1_aux = Point2D(-p1.x, -p1.y)
         p2_aux = Point2D(-p2.x, -p2.y)
         clipped = clipCorner(p1_aux, p2_aux)
-        clipped.start.x *= -1
-        clipped.end.x *= -1
-        clipped.start.y *= -1
-        clipped.end.y *= -1
+        if clipped:
+            clipped.start.x *= -1
+            clipped.end.x *= -1
+            clipped.start.y *= -1
+            clipped.end.y *= -1
 
     elif codeP1 == 9:  # TOP-LEFT
         clipped = clipCorner(p1, p2)
@@ -321,8 +332,9 @@ def nichollLeeNichollClip(line: Line):
         p1_aux = Point2D(-p1.x, p1.y)
         p2_aux = Point2D(-p2.x, p2.y)
         clipped = clipCorner(p1_aux, p2_aux)
-        clipped.start.x *= -1
-        clipped.end.x *= -1
+        if clipped:
+            clipped.start.x *= -1
+            clipped.end.x *= -1
 
     return clipped
 
@@ -397,15 +409,6 @@ def markUnvisited(lista: list):
 # 2 : OUT
 ######################
 def weilerAthertonPolygonClip(polygon: Polygon):
-    # polygon = Polygon([Point2D(-2,0.75),
-    #                     Point2D(-2,-0.75),
-    #                     Point2D(0,-0.75),
-    #                     Point2D(0,-0.25),
-    #                     Point2D(-1.5,-0.25),
-    #                     Point2D(-1.5,0.25),
-    #                     Point2D(0,0.25),
-    #                     Point2D(0,0.75)
-    #                     ])  # REMOVER
     points = getOrderedPoints(polygon)
 
     # lista todas interseções
@@ -512,9 +515,3 @@ def weilerAthertonPolygonClip(polygon: Polygon):
         return visible
     else:
         return None
-
-    # for polygon in visible:
-    #     for point in polygon:
-    #         print(point)
-    #     print("-------------------------")
-    # print()

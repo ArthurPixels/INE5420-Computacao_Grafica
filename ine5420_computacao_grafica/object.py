@@ -382,7 +382,8 @@ class DrawableCurve(Polygon, Object):
             [vx, vy, _] = np.array(
                 ([x, y, 1]),
                 dtype=float).dot(transform)
-            if -1 <= x and x <= 1 and -1 <= y and y <= 1:
+            if -1 < x and x < 1 and -1 < y and y < 1:
                 cairo.line_to(vx, vy)
                 cairo.stroke()
+
             cairo.move_to(vx, vy)
