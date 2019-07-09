@@ -425,7 +425,7 @@ class MainWindowHandler:
             delta_world = self.window.scn_to_world(delta_scn)
 
             def f_win(val):
-                self.window.translate(val, 2)
+                self.window.translate(Point2D(-val.x, -val.y), 2)
 
             def f_obj(obj_id, val):
                 self.main_window.display_file[obj_id].translate(val)
@@ -470,9 +470,9 @@ class MainWindowHandler:
 
             def f_win(angle):
                 if direction == Gdk.ScrollDirection.UP:
-                    self.window.rotate(angle)
-                else:
                     self.window.rotate(-angle)
+                else:
+                    self.window.rotate(angle)
 
             def f_obj(obj_id, angle):
                 if direction == Gdk.ScrollDirection.UP:
@@ -490,11 +490,11 @@ class MainWindowHandler:
 
     # Zoom in
     def bt_zoom_in_clicked_cb(self, button):
-        self.handle_bt_scale(True)
+        self.handle_bt_scale(False)
 
     # Zoom out
     def bt_zoom_out_clicked_cb(self, button):
-        self.handle_bt_scale(False)
+        self.handle_bt_scale(True)
 
     # scale: True to increase, False to decrease
     def handle_bt_scale(self, increase):
@@ -507,15 +507,19 @@ class MainWindowHandler:
         if increase:
             amount = 1 / amount
 
-        def f_win(amount):
-            self.window.zoom(amount)
+        if self.builder.get_object("radio_option_window").get_active():
+            if increase:
+                self.window.zoom(amount*10)
+            else:
+                self.window.zoom(-amount*10)
+        else:
 
-        def f_obj(obj_id, amount):
-            self.main_window.display_file[obj_id].scale(
-                amount, self.main_window.rotationCenter
-            )
+            def f_obj(obj_id, value):
+                self.main_window.display_file[obj_id].scale(
+                    amount, self.main_window.rotationCenter
+                )
 
-        self.apply_to_selected_objects(amount, f_win, f_obj)
+            self.apply_to_selected_objects(amount, None, f_obj)
 
         # re-draw objects on drawing_area
         self.main_window.drawing_area.queue_draw()
@@ -536,7 +540,7 @@ class MainWindowHandler:
             self.main_window.print_log("invalid value")
 
         def f_win(angle):
-            self.window.rotate(angle)
+            self.window.rotate(-angle)
 
         def f_obj(obj_id, angle):
             self.main_window.display_file[obj_id].rotate(
@@ -570,7 +574,7 @@ class MainWindowHandler:
             self.main_window.print_log("invalid value")
 
         def f_win(amount):
-            self.window.translate(Point2D(x * amount, y * amount), 1)
+            self.window.translate(Point2D(-x * amount, -y * amount), 1)
 
         def f_obj(obj_id, amount):
             self.main_window.display_file[obj_id].translate(

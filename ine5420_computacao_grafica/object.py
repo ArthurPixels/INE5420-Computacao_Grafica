@@ -387,3 +387,53 @@ class DrawableCurve(Polygon, Object):
                 cairo.stroke()
 
             cairo.move_to(vx, vy)
+
+
+    def get_center(self, center):
+        cx = 0
+        cy = 0
+        for point in self.points:
+            cx += point.x
+            cy += point.y
+        cx /= len(self.points)
+        cy /= len(self.points)
+
+        if center == 1:
+            return Point2D(0, 0)
+        elif center == 2:
+            return Point2D(cx, cy)
+        else:
+            return self.points[0]
+
+
+    def translate(self, vec):
+        for point in self.points:
+            point.x += vec.x
+            point.y += vec.y
+
+
+    def rotate(self, angle, ctr):
+        center = self.get_center(ctr)
+        mtr = MatrixTransform2D()
+        mtr.translate(-center.x, -center.y)
+        mtr.rotate(angle)
+        mtr.translate(center.x, center.y)
+
+        for point in self.points:
+            [point.x, point.y, _] = np.array(
+                [point.x, point.y, 1], dtype=float
+            ) @ mtr.tr
+
+
+    def scale(self, amount, ctr):
+        center = self.get_center(ctr)
+
+        mtr = MatrixTransform2D()
+        mtr.translate(-center.x, -center.y)
+        mtr.scale(amount, amount)
+        mtr.translate(center.x, center.y)
+
+        for point in self.points:
+            [point.x, point.y, _] = np.array(
+                [point.x, point.y, 1], dtype=float
+            ) @ mtr.tr
